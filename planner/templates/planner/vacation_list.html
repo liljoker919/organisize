@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Vacation Plans</h1>
+<ul>
+    {% for vacation in vacations %}
+    <li>
+        <a href="{% url 'vacation_detail' vacation.id %}">
+            <strong>{{ vacation.title }}</strong> – {{ vacation.destination }}
+            ({{ vacation.start_date|date:"F j, Y" }} to {{ vacation.end_date|date:"F j, Y" }})
+        </a>
+    </li>
+    {% empty %}
+    <li>No vacation plans found.</li>
+    {% endfor %}
+</ul>
+<p><a class="btn btn-primary" href="{% url 'create_vacation' %}">Add a New Vacation</a></p>
+{% endblock %}
