@@ -1,4 +1,5 @@
 {% extends "planner/base.html" %}
+
 {% block title %}Home | Organisize{% endblock %}
 
 
@@ -23,7 +24,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Add a New Trip</h5>
                     <p class="card-text">Start planning a new adventure with ease.</p>
-                    <a href="{% url 'vacation_create' %}" class="btn btn-success">Add Vacation</a>
+                    <a href="{% url 'create_vacation' %}" class="btn btn-success">Add Vacation</a>
                 </div>
             </div>
         </div>

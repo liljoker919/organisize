@@ -7,7 +7,7 @@ from .models import Flight, Lodging, Activity
 
 
 def home(request):
-    return render(request, "home.html")
+    return render(request, "planner/home.html")
 
 
 def vacation_list(request):
