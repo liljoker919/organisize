@@ -1,14 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Organisize</title>
-</head>
+{% block content %}
+<div class="container py-5">
+    <h1 class="display-4">Welcome to Organisize</h1>
+    <p class="lead">Your one-stop vacation planner for organizing every detail — from flights and lodging to activities
+        and costs.</p>
 
-<body>
-    <h1>Welcome to Organisize</h1>
-    <p>This is your new Django-powered app hosted on AWS Lightsail 🚀</p>
-</body>
+    <hr class="my-4">
 
-</html>
+    <a href="{% url 'vacation_list' %}" class="btn btn-primary btn-lg">View My Vacations</a>
+    <a href="{% url 'vacation_create' %}" class="btn btn-outline-secondary btn-lg ms-2">Plan a New Trip</a>
+</div>
+{% endblock %}
