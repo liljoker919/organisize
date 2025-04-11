@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg-info/
+
+# Environment
+.env
+.venv/
+venv/
+ENV/
+env/
+*.env
+
+# Django stuff
+db.sqlite3
+staticfiles/
+media/
+
+# VSCode and other IDEs
+.vscode/
+.idea/
+
+# MacOS/Linux/Windows
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
