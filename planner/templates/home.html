@@ -1,14 +1,40 @@
-{% extends "base.html" %}
+{% extends "planner/base.html" %}
 
 {% block content %}
-<div class="container py-5">
-    <h1 class="display-4">Welcome to Organisize</h1>
-    <p class="lead">Your one-stop vacation planner for organizing every detail — from flights and lodging to activities
-        and costs.</p>
+<div class="container mt-4">
+    <h1 class="mb-4">Welcome to Organisize</h1>
+    <p class="lead">Plan, organize, and manage your vacations seamlessly.</p>
 
-    <hr class="my-4">
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Your Vacations</h5>
+                    <p class="card-text">View and edit your upcoming vacation plans.</p>
+                    <a href="{% url 'vacation_list' %}" class="btn btn-primary">View Vacations</a>
+                </div>
+            </div>
+        </div>
 
-    <a href="{% url 'vacation_list' %}" class="btn btn-primary btn-lg">View My Vacations</a>
-    <a href="{% url 'vacation_create' %}" class="btn btn-outline-secondary btn-lg ms-2">Plan a New Trip</a>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Add a New Trip</h5>
+                    <p class="card-text">Start planning a new adventure with ease.</p>
+                    <a href="{% url 'vacation_create' %}" class="btn btn-success">Add Vacation</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">How It Works</h5>
+                    <p class="card-text">Learn how to use Organisize to its full potential.</p>
+                    <a href="#" class="btn btn-outline-secondary">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
