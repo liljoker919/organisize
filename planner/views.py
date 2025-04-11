@@ -3,6 +3,7 @@ from django.forms import inlineformset_factory
 from .models import VacationPlan, Flight, Lodging, Activity
 from .forms import VacationPlanForm, FlightForm, LodgingForm, ActivityForm
 from django.views.decorators.http import require_POST
+from .models import Flight, Lodging, Activity
 
 
 def home(request):
@@ -28,6 +29,11 @@ def create_vacation(request):
 def vacation_detail(request, pk):
     vacation = get_object_or_404(VacationPlan, pk=pk)
 
+    # Query related objects
+    flights = Flight.objects.filter(vacation=vacation)
+    lodgings = Lodging.objects.filter(vacation=vacation)
+    activities = Activity.objects.filter(vacation=vacation)
+
     # Fresh forms for modals
     flight_form = FlightForm()
     lodging_form = LodgingForm()
@@ -41,6 +47,9 @@ def vacation_detail(request, pk):
             "flight_form": flight_form,
             "lodging_form": lodging_form,
             "activity_form": activity_form,
+            "flights": flights,
+            "lodgings": lodgings,
+            "activities": activities,
         },
     )
 
@@ -64,6 +73,9 @@ def add_lodging(request, pk):
         lodging = form.save(commit=False)
         lodging.vacation = vacation
         lodging.save()
+    if not form.is_valid():
+        print("Lodging form errors:", form.errors)
+
     return redirect("vacation_detail", pk=pk)
 
 
