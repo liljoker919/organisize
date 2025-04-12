@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'planner/base.html' %}
 {% load static %}
 
 {% block content %}
@@ -22,7 +22,11 @@
         <li>No flights added yet.</li>
         {% endfor %}
     </ul>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#flightModal">Add Flight</button>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#flightModal">
+        Add Flight
+    </button>
+
+
 
     <!-- Lodging -->
     <h4 class="mt-4">Lodging</h4>
@@ -36,7 +40,10 @@
         <li>No lodging added yet.</li>
         {% endfor %}
     </ul>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#lodgingModal">Add Lodging</button>
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#lodgingModal">
+        Add Lodging
+    </button>
+
 
     <!-- Activities -->
     <h4 class="mt-4">Activities</h4>
@@ -47,15 +54,46 @@
         <li>No activities added yet.</li>
         {% endfor %}
     </ul>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#activityModal">Add Activity</button>
+    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#activityModal">
+        Add Activity
+    </button>
+
+
+
+
 </div>
 
 <!-- Modals -->
-{% include "planner/modals/add_flight_modal.html" %}
-{% include "planner/modals/add_lodging_modal.html" %}
-{% include "planner/modals/add_activity_modal.html" %}
+{% include 'planner/modals/add_flight_modal.html' with form=flight_form %}
+{% include 'planner/modals/add_lodging_modal.html' with form=lodging_form %}
+{% include 'planner/modals/add_activity_modal.html' with form=activity_form %}
 
 
+
+
+{% if show_flight_modal %}
+<script>
+    const flightModal = new bootstrap.Modal(document.getElementById('flightModal'));
+    flightModal.show();
+</script>
+{% endif %}
+{% if show_lodging_modal %}
+<script>
+    window.addEventListener('load', function () {
+        const lodgingModal = new bootstrap.Modal(document.getElementById('lodgingModal'));
+        lodgingModal.show();
+    });
+</script>
+{% endif %}
+
+{% if show_activity_modal %}
+<script>
+    window.addEventListener('load', function () {
+        const activityModal = new bootstrap.Modal(document.getElementById('activityModal'));
+        activityModal.show();
+    });
+</script>
+{% endif %}
 
 
 <!-- Include Bootstrap JS -->
