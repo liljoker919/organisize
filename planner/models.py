@@ -7,14 +7,15 @@ class VacationPlan(models.Model):
         ("planned", "Planned"),
         ("booked", "Booked"),
     ]
+    trip_type = models.CharField(
+        max_length=10, choices=TRIP_TYPE_CHOICES, default="planned"
+    )
 
     title = models.CharField(max_length=200)
     destination = models.CharField(max_length=200)
     start_date = models.DateField()
     end_date = models.DateField()
-    trip_type = models.CharField(
-        max_length=10, choices=TRIP_TYPE_CHOICES, default="planned"
-    )
+
     estimated_cost = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True
     )
@@ -38,6 +39,9 @@ class Flight(models.Model):
     arrival_airport = models.CharField(max_length=100)
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
+    actual_cost = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
 
 
 class Lodging(models.Model):
@@ -48,6 +52,9 @@ class Lodging(models.Model):
     name = models.CharField(max_length=200)
     check_in = models.DateField()
     check_out = models.DateField()
+    actual_cost = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
 
 
 class Activity(models.Model):
@@ -57,3 +64,6 @@ class Activity(models.Model):
     name = models.CharField(max_length=200)
     date = models.DateField()
     start_time = models.TimeField()
+    actual_cost = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )

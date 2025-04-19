@@ -2,14 +2,28 @@
 {% load static %}
 
 {% block content %}
+<h2>
+    {{ vacation.destination }} ({{ vacation.start_date }} - {{ vacation.end_date }})
+    <span class="badge bg-secondary text-capitalize">{{ vacation.trip_type }}</span>
+</h2>
+
 <div class="container mt-4">
-    <h2>{{ vacation.destination }} ({{ vacation.start_date }} - {{ vacation.end_date }})</h2>
+
     <p><strong>Estimated Cost:</strong> ${{ vacation.estimated_cost }}</p>
     <p><strong>Who's Going:</strong> {{ vacation.whos_going }}</p>
     <p><strong>Notes:</strong> {{ vacation.notes }}</p>
 
     <hr>
 
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success mt-3" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if vacation.trip_type == 'booked' %}
     <!-- Flights -->
     <h4>Flights</h4>
     <ul>
@@ -17,11 +31,15 @@
         <li>
             {{ flight.airline }} – {{ flight.departure_airport }} to {{ flight.arrival_airport }}
             ({{ flight.departure_time|date:"F j, Y, g:i a" }} - {{ flight.arrival_time|date:"F j, Y, g:i a" }})
+            {% if flight.actual_cost %}
+            – <strong>Cost:</strong> ${{ flight.actual_cost }}
+            {% endif %}
         </li>
         {% empty %}
         <li>No flights added yet.</li>
         {% endfor %}
     </ul>
+
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#flightModal">
         Add Flight
     </button>
@@ -35,11 +53,15 @@
         <li>
             {{ lodging.name }} ({{ lodging.check_in|date:"F j, Y" }} to {{ lodging.check_out|date:"F j, Y" }})
             – Confirmation: {{ lodging.confirmation }}
+            {% if lodging.actual_cost %}
+            – <strong>Cost:</strong> ${{ lodging.actual_cost }}
+            {% endif %}
         </li>
         {% empty %}
         <li>No lodging added yet.</li>
         {% endfor %}
     </ul>
+
     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#lodgingModal">
         Add Lodging
     </button>
@@ -49,14 +71,21 @@
     <h4 class="mt-4">Activities</h4>
     <ul>
         {% for activity in vacation.activities.all %}
-        <li>{{ activity.name }} on {{ activity.date }} at {{ activity.start_time }}</li>
+        <li>
+            {{ activity.name }} on {{ activity.date }} at {{ activity.start_time }}
+            {% if activity.actual_cost %}
+            – <strong>Cost:</strong> ${{ activity.actual_cost }}
+            {% endif %}
+        </li>
         {% empty %}
         <li>No activities added yet.</li>
         {% endfor %}
     </ul>
+
     <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#activityModal">
         Add Activity
     </button>
+    {% endif %}
 
 
 
@@ -64,10 +93,11 @@
 </div>
 
 <!-- Modals -->
+{% if vacation.trip_type == 'booked' %}
 {% include 'planner/modals/add_flight_modal.html' with form=flight_form %}
 {% include 'planner/modals/add_lodging_modal.html' with form=lodging_form %}
 {% include 'planner/modals/add_activity_modal.html' with form=activity_form %}
-
+{% endif %}
 
 
 
@@ -94,6 +124,16 @@
     });
 </script>
 {% endif %}
+
+{% if vacation.trip_type == 'planned' %}
+<h4 class="mt-4">Trip Status: Planned</h4>
+<form method="post" action="{% url 'convert_to_booked' vacation.id %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-warning">Convert to Booked</button>
+</form>
+{% endif %}
+
+
 
 
 <!-- Include Bootstrap JS -->

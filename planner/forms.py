@@ -6,36 +6,81 @@ class VacationPlanForm(forms.ModelForm):
     class Meta:
         model = VacationPlan
         fields = [
-            "title",
             "destination",
             "start_date",
             "end_date",
-            "trip_type",
             "estimated_cost",
-            "actual_cost",
             "whos_going",
             "notes",
         ]
         widgets = {
-            "start_date": forms.DateInput(attrs={"type": "date"}),
-            "end_date": forms.DateInput(attrs={"type": "date"}),
+            "start_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "class": "form-control",
+                    "placeholder": "Start date",
+                }
+            ),
+            "end_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "class": "form-control",
+                    "placeholder": "End date",
+                }
+            ),
+            "estimated_cost": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "Estimated cost"}
+            ),
+            "who_is_going": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         }
 
 
 class FlightForm(forms.ModelForm):
     class Meta:
         model = Flight
-        exclude = ["vacation"]
+        fields = [
+            "airline",
+            "confirmation",
+            "departure_airport",
+            "arrival_airport",
+            "departure_time",
+            "arrival_time",
+            "actual_cost",
+        ]
         widgets = {
-            "airline": forms.TextInput(attrs={"class": "form-control"}),
-            "confirmation": forms.TextInput(attrs={"class": "form-control"}),
-            "departure_airport": forms.TextInput(attrs={"class": "form-control"}),
-            "arrival_airport": forms.TextInput(attrs={"class": "form-control"}),
+            "airline": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Airline"}
+            ),
+            "confirmation": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Confirmation #"}
+            ),
+            "departure_airport": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Departure airport"}
+            ),
+            "arrival_airport": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Arrival airport"}
+            ),
             "departure_time": forms.DateTimeInput(
-                attrs={"class": "form-control", "type": "datetime-local"}
+                attrs={
+                    "type": "datetime-local",
+                    "class": "form-control",
+                    "placeholder": "Departure time",
+                }
             ),
             "arrival_time": forms.DateTimeInput(
-                attrs={"class": "form-control", "type": "datetime-local"}
+                attrs={
+                    "type": "datetime-local",
+                    "class": "form-control",
+                    "placeholder": "Arrival time",
+                }
+            ),
+            "actual_cost": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Actual cost",
+                    "step": "0.01",
+                }
             ),
         }
 
@@ -43,15 +88,34 @@ class FlightForm(forms.ModelForm):
 class LodgingForm(forms.ModelForm):
     class Meta:
         model = Lodging
-        exclude = ["vacation"]
+        fields = ["confirmation", "name", "check_in", "check_out", "actual_cost"]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control"}),
-            "confirmation": forms.TextInput(attrs={"class": "form-control"}),
+            "confirmation": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Confirmation #"}
+            ),
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Lodging name"}
+            ),
             "check_in": forms.DateInput(
-                attrs={"class": "form-control", "type": "date"}
+                attrs={
+                    "type": "date",
+                    "class": "form-control",
+                    "placeholder": "Check-in date",
+                }
             ),
             "check_out": forms.DateInput(
-                attrs={"class": "form-control", "type": "date"}
+                attrs={
+                    "type": "date",
+                    "class": "form-control",
+                    "placeholder": "Check-out date",
+                }
+            ),
+            "actual_cost": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Actual cost",
+                    "step": "0.01",
+                }
             ),
         }
 
@@ -59,11 +123,30 @@ class LodgingForm(forms.ModelForm):
 class ActivityForm(forms.ModelForm):
     class Meta:
         model = Activity
-        exclude = ["vacation"]
+        fields = ["name", "date", "start_time", "actual_cost"]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control"}),
-            "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Activity name"}
+            ),
+            "date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "class": "form-control",
+                    "placeholder": "Activity date",
+                }
+            ),
             "start_time": forms.TimeInput(
-                attrs={"class": "form-control", "type": "time"}
+                attrs={
+                    "type": "time",
+                    "class": "form-control",
+                    "placeholder": "Start time",
+                }
+            ),
+            "actual_cost": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Actual cost",
+                    "step": "0.01",
+                }
             ),
         }

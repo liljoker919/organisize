@@ -1,12 +1,16 @@
 {% extends "planner/base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>Add New Vacation</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Save Vacation</button>
-    </form>
+<div class="form-group">
+    <h1 class="mt-4">Create a New Vacation</h1>
+    <p class="lead">Plan your next adventure!</p>
+    <div class="container mt-5">
+        <h2>Add New Vacation</h2>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Save Vacation</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

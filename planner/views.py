@@ -6,7 +6,10 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.http import require_http_methods
 from .models import Flight, Lodging, Activity
 from django.template.loader import render_to_string
+from django.template.exceptions import TemplateDoesNotExist
 from django.http import JsonResponse
+from django.contrib import messages
+from django.template import Template
 
 
 def home(request):
@@ -49,7 +52,10 @@ def vacation_detail(request, pk):
         "lodgings": lodgings,
         "activities": activities,
     }
-
+    try:
+        return render(request, "planner/vacation_detail.html", context)
+    except TemplateDoesNotExist:
+        return render(request, "404.html", status=404)
     return render(request, "planner/vacation_detail.html", context)
 
 
@@ -154,3 +160,13 @@ def add_activity(request, pk):
             "show_activity_modal": True,
         },
     )
+
+
+def convert_to_booked(request, pk):
+    vacation = get_object_or_404(VacationPlan, pk=pk)
+
+    if vacation.trip_type == "planned":
+        vacation.trip_type = "booked"
+        vacation.save()
+        messages.success(request, "Trip converted to Booked!")
+    return redirect("vacation_detail", pk=pk)

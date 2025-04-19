@@ -9,4 +9,7 @@ urlpatterns = [
     path("vacations/<int:pk>/add-flight/", views.add_flight, name="add_flight"),
     path("vacations/<int:pk>/add-lodging/", views.add_lodging, name="add_lodging"),
     path("vacations/<int:pk>/add-activity/", views.add_activity, name="add_activity"),
+    path(
+        "vacations/<int:pk>/convert/", views.convert_to_booked, name="convert_to_booked"
+    ),
 ]
