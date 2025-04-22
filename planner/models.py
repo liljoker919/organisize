@@ -1,5 +1,6 @@
 # models.py
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class VacationPlan(models.Model):
@@ -24,6 +25,10 @@ class VacationPlan(models.Model):
     )
     whos_going = models.TextField(blank=True)
     notes = models.TextField(default="", blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="vacations")
+    shared_with = models.ManyToManyField(
+        User, related_name="shared_vacations", blank=True
+    )
 
     def __str__(self):
         return self.title

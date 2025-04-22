@@ -3,6 +3,7 @@ from django.forms import inlineformset_factory
 from .models import VacationPlan, Flight, Lodging, Activity
 from .forms import VacationPlanForm, FlightForm, LodgingForm, ActivityForm
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from .models import Flight, Lodging, Activity
 from django.template.loader import render_to_string
@@ -10,30 +11,48 @@ from django.template.exceptions import TemplateDoesNotExist
 from django.http import JsonResponse
 from django.contrib import messages
 from django.template import Template
+from django.utils.decorators import method_decorator
+from django.views.generic import ListView
+from django.views.generic.edit import CreateView
+from django.db.models import Q
 
 
 def home(request):
     return render(request, "planner/home.html")
 
 
-def vacation_list(request):
-    vacations = VacationPlan.objects.all()
-    return render(request, "planner/vacation_list.html", {"vacations": vacations})
+@method_decorator(login_required, name="dispatch")
+class VacationListView(ListView):
+    model = VacationPlan
+    template_name = "planner/vacation_list.html"
+    context_object_name = "vacations"
+
+    def get_queryset(self):
+        return VacationPlan.objects.filter(
+            Q(owner=self.request.user) | Q(shared_with=self.request.user)
+        ).distinct()
 
 
+@login_required
 def create_vacation(request):
     if request.method == "POST":
         form = VacationPlanForm(request.POST)
         if form.is_valid():
-            vacation = form.save()
-            return redirect("vacation_detail", pk=vacation.pk)
+            vacation = form.save(commit=False)
+            vacation.owner = request.user
+            vacation.save()
+            form.save_m2m()  # Save shared_with relationships
+            return redirect("vacation_list")
     else:
         form = VacationPlanForm()
     return render(request, "planner/create_vacation.html", {"form": form})
 
 
+@login_required
 def vacation_detail(request, pk):
-    vacation = get_object_or_404(VacationPlan, pk=pk)
+    vacation = get_object_or_404(
+        VacationPlan, Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))
+    )
 
     flights = Flight.objects.filter(vacation=vacation)
     lodgings = Lodging.objects.filter(vacation=vacation)

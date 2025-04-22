@@ -14,78 +14,94 @@
     <p><strong>Notes:</strong> {{ vacation.notes }}</p>
 
     <hr>
-
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-success mt-3" role="alert">
-        {{ message }}
+    {% if vacation.shared_with.all %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <strong>Shared With:</strong>
+            {% for user in vacation.shared_with.all %}
+            <span class="badge bg-secondary">{{ user.get_full_name|default:user.username }}</span>
+            {% empty %}
+            <span class="text-muted">Not shared with anyone</span>
+            {% endfor %}
+        </div>
     </div>
+
+
+</div>
+{% endif %}
+
+
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success mt-3" role="alert">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if vacation.trip_type == 'booked' %}
+<!-- Flights -->
+<h4>Flights</h4>
+<ul>
+    {% for flight in vacation.flights.all %}
+    <li>
+        {{ flight.airline }} – {{ flight.departure_airport }} to {{ flight.arrival_airport }}
+        ({{ flight.departure_time|date:"F j, Y, g:i a" }} - {{ flight.arrival_time|date:"F j, Y, g:i a" }})
+        {% if flight.actual_cost %}
+        – <strong>Cost:</strong> ${{ flight.actual_cost }}
+        {% endif %}
+    </li>
+    {% empty %}
+    <li>No flights added yet.</li>
     {% endfor %}
-    {% endif %}
+</ul>
 
-    {% if vacation.trip_type == 'booked' %}
-    <!-- Flights -->
-    <h4>Flights</h4>
-    <ul>
-        {% for flight in vacation.flights.all %}
-        <li>
-            {{ flight.airline }} – {{ flight.departure_airport }} to {{ flight.arrival_airport }}
-            ({{ flight.departure_time|date:"F j, Y, g:i a" }} - {{ flight.arrival_time|date:"F j, Y, g:i a" }})
-            {% if flight.actual_cost %}
-            – <strong>Cost:</strong> ${{ flight.actual_cost }}
-            {% endif %}
-        </li>
-        {% empty %}
-        <li>No flights added yet.</li>
-        {% endfor %}
-    </ul>
-
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#flightModal">
-        Add Flight
-    </button>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#flightModal">
+    Add Flight
+</button>
 
 
 
-    <!-- Lodging -->
-    <h4 class="mt-4">Lodging</h4>
-    <ul>
-        {% for lodging in vacation.lodgings.all %}
-        <li>
-            {{ lodging.name }} ({{ lodging.check_in|date:"F j, Y" }} to {{ lodging.check_out|date:"F j, Y" }})
-            – Confirmation: {{ lodging.confirmation }}
-            {% if lodging.actual_cost %}
-            – <strong>Cost:</strong> ${{ lodging.actual_cost }}
-            {% endif %}
-        </li>
-        {% empty %}
-        <li>No lodging added yet.</li>
-        {% endfor %}
-    </ul>
+<!-- Lodging -->
+<h4 class="mt-4">Lodging</h4>
+<ul>
+    {% for lodging in vacation.lodgings.all %}
+    <li>
+        {{ lodging.name }} ({{ lodging.check_in|date:"F j, Y" }} to {{ lodging.check_out|date:"F j, Y" }})
+        – Confirmation: {{ lodging.confirmation }}
+        {% if lodging.actual_cost %}
+        – <strong>Cost:</strong> ${{ lodging.actual_cost }}
+        {% endif %}
+    </li>
+    {% empty %}
+    <li>No lodging added yet.</li>
+    {% endfor %}
+</ul>
 
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#lodgingModal">
-        Add Lodging
-    </button>
+<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#lodgingModal">
+    Add Lodging
+</button>
 
 
-    <!-- Activities -->
-    <h4 class="mt-4">Activities</h4>
-    <ul>
-        {% for activity in vacation.activities.all %}
-        <li>
-            {{ activity.name }} on {{ activity.date }} at {{ activity.start_time }}
-            {% if activity.actual_cost %}
-            – <strong>Cost:</strong> ${{ activity.actual_cost }}
-            {% endif %}
-        </li>
-        {% empty %}
-        <li>No activities added yet.</li>
-        {% endfor %}
-    </ul>
+<!-- Activities -->
+<h4 class="mt-4">Activities</h4>
+<ul>
+    {% for activity in vacation.activities.all %}
+    <li>
+        {{ activity.name }} on {{ activity.date }} at {{ activity.start_time }}
+        {% if activity.actual_cost %}
+        – <strong>Cost:</strong> ${{ activity.actual_cost }}
+        {% endif %}
+    </li>
+    {% empty %}
+    <li>No activities added yet.</li>
+    {% endfor %}
+</ul>
 
-    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#activityModal">
-        Add Activity
-    </button>
-    {% endif %}
+<button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#activityModal">
+    Add Activity
+</button>
+{% endif %}
 
 
 

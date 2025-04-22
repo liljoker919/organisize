@@ -36,6 +36,12 @@
                         <a class="nav-link" href="{% url 'login' %}">Login</a>
                     </li>
                     {% endif %}
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <span class="nav-link disabled">Logged in as {{ user.username }}</span>
+                    </li>
+                    {% endif %}
+
                 </ul>
 
             </div>
