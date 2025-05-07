@@ -1,8 +1,15 @@
 from django import forms
 from .models import VacationPlan, Flight, Lodging, Activity
+from django.contrib.auth.models import User
 
 
 class VacationPlanForm(forms.ModelForm):
+    shared_with = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={"class": "form-control"}),
+    )
+
     class Meta:
         model = VacationPlan
         fields = [
@@ -12,27 +19,23 @@ class VacationPlanForm(forms.ModelForm):
             "estimated_cost",
             "whos_going",
             "notes",
+            "trip_type",
+            "shared_with",
         ]
         widgets = {
             "start_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                    "class": "form-control",
-                    "placeholder": "Start date",
-                }
+                attrs={"type": "date", "class": "form-control"}
             ),
             "end_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                    "class": "form-control",
-                    "placeholder": "End date",
-                }
+                attrs={"type": "date", "class": "form-control"}
             ),
+            "destination": forms.TextInput(attrs={"class": "form-control"}),
             "estimated_cost": forms.NumberInput(
-                attrs={"class": "form-control", "placeholder": "Estimated cost"}
+                attrs={"class": "form-control", "step": "0.01"}
             ),
-            "who_is_going": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "whos_going": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
             "notes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "trip_type": forms.Select(attrs={"class": "form-control"}),
         }
 
 
