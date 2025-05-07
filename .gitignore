@@ -34,25 +34,7 @@ Thumbs.db
 htmlcov/
 .coverage
 coverage.xml
-=======
-__pycache__/
 
+# Ignore Python compiled files
 *.pyc
-
-*.pyo
-
-*.pyd
-
-db.sqlite3
-
-*.sqlite3
-
-.env
-
-venv/
-
-staticfiles/
-
-media/
-
->>>>>>> 03ab79d (Ignore local SQLite database)
+__pycache__/
