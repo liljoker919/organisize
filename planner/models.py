@@ -1,37 +1,41 @@
 # models.py
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 
 
 class VacationPlan(models.Model):
-    TRIP_TYPE_CHOICES = [
-        ("planned", "Planned"),
-        ("booked", "Booked"),
-    ]
-    trip_type = models.CharField(
-        max_length=10, choices=TRIP_TYPE_CHOICES, default="planned"
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="owned_vacations"
     )
-
-    title = models.CharField(max_length=200)
-    destination = models.CharField(max_length=200)
-    start_date = models.DateField()
-    end_date = models.DateField()
-
-    estimated_cost = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
-    actual_cost = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
-    whos_going = models.TextField(blank=True)
-    notes = models.TextField(default="", blank=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="vacations")
     shared_with = models.ManyToManyField(
         User, related_name="shared_vacations", blank=True
     )
+    destination = models.CharField(max_length=255)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    trip_type = models.CharField(
+        max_length=50, choices=[("planned", "Planned"), ("booked", "Booked")]
+    )
+    estimated_cost = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    notes = models.TextField(blank=True)
+    whos_going = models.TextField(blank=True)
+
+    def clean(self):
+        if self.end_date < self.start_date:
+            raise ValidationError("End date cannot be earlier than start date.")
 
     def __str__(self):
-        return self.title
+        return self.destination
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["start_date"]),
+            models.Index(fields=["end_date"]),
+            models.Index(fields=["trip_type"]),
+        ]
 
 
 class Flight(models.Model):
