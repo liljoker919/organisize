@@ -1,4 +1,5 @@
 # models.py
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -76,3 +77,21 @@ class Activity(models.Model):
     actual_cost = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True
     )
+
+
+class Group(models.Model):
+    """
+    Group model to enable group collaboration and voting on activities. 
+    The model should include fields for the group name, invite link, and members
+    """
+    name = models.CharField(max_length=200)
+    invite_link = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    members = models.ManyToManyField(User, related_name='vacation_groups')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-created_at']
