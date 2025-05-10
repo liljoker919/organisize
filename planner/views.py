@@ -52,6 +52,7 @@ def create_vacation(request):
 def edit_vacation(request, pk):
     vacation = get_object_or_404(VacationPlan, pk=pk)
     if vacation.owner != request.user:
+        messages.error(request, "You do not have permission to edit this vacation.")
         return redirect("vacation_detail", pk=vacation.pk)
 
     if request.method == "POST":
