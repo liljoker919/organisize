@@ -5,7 +5,10 @@
     <p>
         <strong>Dates:</strong> {{ vacation.start_date }} to {{ vacation.end_date }}<br>
         <strong>Status:</strong> {{ vacation.trip_type|capfirst }}<br>
-        <strong>Estimated Cost:</strong> ${{ vacation.estimated_cost }}
+        <strong>Estimated Cost:</strong> ${{ vacation.estimated_cost }}<br>
+        {% if group %}
+        <strong>Group:</strong> {{ group.name }}<br>
+        {% endif %}
     </p>
 
     <!-- Trigger the Edit Vacation Modal -->

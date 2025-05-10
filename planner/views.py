@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from .models import Flight, Lodging, Activity
 from django.template.loader import render_to_string
 from django.template.exceptions import TemplateDoesNotExist
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.contrib import messages
 from django.template import Template
 from django.utils.decorators import method_decorator
@@ -82,23 +82,19 @@ def delete_vacation(request, pk):
 
 @login_required
 def vacation_detail(request, pk):
-    vacation = get_object_or_404(
-        VacationPlan, Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))
-    )
+    try:
+        vacation = VacationPlan.objects.get(
+            Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))
+        )
 
-    flights = Flight.objects.filter(vacation=vacation)
-    lodgings = Lodging.objects.filter(vacation=vacation)
-    activities = Activity.objects.filter(vacation=vacation)
+    except VacationPlan.DoesNotExist:
 
+        raise Http404("No VacationPlan matches the given query.")
+
+    group = vacation.group
     context = {
         "vacation": vacation,
-        "flights": flights,
-        "lodgings": lodgings,
-        "activities": activities,
-        "flight_form": FlightForm(),  # Form for adding a new flight
-        "lodging_form": LodgingForm(),  # Form for adding a new lodging
-        "activity_form": ActivityForm(),  # Form for adding a new activity
-        "form": VacationPlanForm(instance=vacation),  # Form for editing the vacation
+        "group": group,
     }
     return render(request, "planner/vacation_detail.html", context)
 
@@ -314,7 +310,7 @@ def delete_activity(request, pk):
 
 
 def convert_to_booked(request, pk):
-    vacation = get_object_or_404(VacationPlan, pk=pk)
+    vacation = get_object_or_404(VacationPlan, pk=pk, owner=request.user)
 
     if vacation.trip_type == "planned":
         vacation.trip_type = "booked"

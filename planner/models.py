@@ -23,6 +23,13 @@ class VacationPlan(models.Model):
     )
     notes = models.TextField(blank=True)
     whos_going = models.TextField(blank=True)
+    group = models.ForeignKey(  # New field
+        "Group",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="vacations",
+    )
 
     def clean(self):
         if self.end_date < self.start_date:
@@ -81,12 +88,13 @@ class Activity(models.Model):
 
 class Group(models.Model):
     """
-    Group model to enable group collaboration and voting on activities. 
+    Group model to enable group collaboration and voting on activities.
     The model should include fields for the group name, invite link, and members
     """
+
     name = models.CharField(max_length=200)
     invite_link = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    members = models.ManyToManyField(User, related_name='vacation_groups')
+    members = models.ManyToManyField(User, related_name="vacation_groups")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -94,4 +102,4 @@ class Group(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
