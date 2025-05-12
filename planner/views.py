@@ -1,7 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import inlineformset_factory
 from .models import VacationPlan, Flight, Lodging, Activity
-from .forms import VacationPlanForm, FlightForm, LodgingForm, ActivityForm
+from .forms import (
+    VacationPlanForm,
+    FlightForm,
+    LodgingForm,
+    ActivityForm,
+    ShareVacationForm,
+)
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -15,6 +21,11 @@ from django.utils.decorators import method_decorator
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
 from django.db.models import Q
+from django.core.mail import send_mail
+from django.contrib.auth.models import User
+from django.utils.crypto import get_random_string
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 
 def home(request):
@@ -41,7 +52,34 @@ def create_vacation(request):
             vacation = form.save(commit=False)
             vacation.owner = request.user
             vacation.save()
+
+            # Process shared emails
+            emails = form.cleaned_data.get("share_with_emails", "").split(",")
+            emails = [email.strip() for email in emails if email.strip()]
+            for email in emails:
+                user = User.objects.filter(email=email).first()
+                if user:
+                    # Existing user: Add to shared_with
+                    vacation.shared_with.add(user)
+                else:
+                    # New user: Create a temporary user and send registration email
+                    temp_password = get_random_string(8)
+                    new_user = User.objects.create_user(
+                        username=email.split("@")[0],
+                        email=email,
+                        password=temp_password,
+                    )
+                    vacation.shared_with.add(new_user)
+                    send_mail(
+                        subject="You're invited to join a vacation on Organisize!",
+                        message=f"You've been invited to join a vacation. "
+                        f"Please register using this email and the temporary password: {temp_password}",
+                        from_email="noreply@organisize.com",
+                        recipient_list=[email],
+                    )
+
             form.save_m2m()  # Save shared_with relationships
+            messages.success(request, "Vacation created successfully!")
             return redirect("vacation_list")
     else:
         form = VacationPlanForm()
@@ -83,19 +121,37 @@ def delete_vacation(request, pk):
 
 @login_required
 def vacation_detail(request, pk):
-    try:
-        vacation = VacationPlan.objects.get(
-            Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))
-        )
+    vacation = get_object_or_404(
+        VacationPlan, Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))
+    )
 
-    except VacationPlan.DoesNotExist:
+    # Initialize forms for static modals
+    lodging_form = LodgingForm()
+    activity_form = ActivityForm()
+    flight_form = FlightForm()
+    edit_vacation_form = VacationPlanForm(instance=vacation)
 
-        raise Http404("No VacationPlan matches the given query.")
+    # Initialize forms for dynamic modals (e.g., editing existing objects)
+    lodgings = vacation.lodgings.all()
+    lodging_forms = {lodging.id: LodgingForm(instance=lodging) for lodging in lodgings}
 
-    group = vacation.group
+    activities = vacation.activities.all()
+    activity_forms = {
+        activity.id: ActivityForm(instance=activity) for activity in activities
+    }
+
+    flights = vacation.flights.all()
+    flight_forms = {flight.id: FlightForm(instance=flight) for flight in flights}
+
     context = {
         "vacation": vacation,
-        "group": group,
+        "lodging_form": lodging_form,
+        "activity_form": activity_form,
+        "flight_form": flight_form,
+        "edit_vacation_form": edit_vacation_form,
+        "lodging_forms": lodging_forms,
+        "activity_forms": activity_forms,
+        "flight_forms": flight_forms,
     }
     return render(request, "planner/vacation_detail.html", context)
 
@@ -318,3 +374,76 @@ def convert_to_booked(request, pk):
         vacation.save()
         messages.success(request, "Trip converted to Booked!")
     return redirect("vacation_detail", pk=pk)
+
+
+@login_required
+def share_vacation(request, pk):
+    vacation = get_object_or_404(VacationPlan, pk=pk, owner=request.user)
+
+    if request.method == "POST":
+        form = ShareVacationForm(request.POST)
+        if form.is_valid():
+            emails = form.cleaned_data["emails"].split(",")
+            emails = [email.strip() for email in emails]
+            for email in emails:
+                user = User.objects.filter(email=email).first()
+                if user:
+                    # Existing user: Add to shared_with
+                    vacation.shared_with.add(user)
+                else:
+                    # New user: Create a temporary user and send registration email
+                    temp_password = get_random_string(8)
+                    new_user = User.objects.create_user(
+                        username=email.split("@")[0],
+                        email=email,
+                        password=temp_password,
+                    )
+                    vacation.shared_with.add(new_user)
+                    send_mail(
+                        subject="You're invited to join a vacation on Organisize!",
+                        message=f"You've been invited to join a vacation. "
+                        f"Please register using this email and the temporary password: {temp_password}",
+                        from_email="noreply@organisize.com",
+                        recipient_list=[email],
+                    )
+            messages.success(request, "Vacation shared successfully!")
+            return redirect("vacation_detail", pk=pk)
+    else:
+        form = ShareVacationForm()
+
+    return render(
+        request, "planner/share_vacation.html", {"form": form, "vacation": vacation}
+    )
+
+
+@login_required
+@require_http_methods(["POST"])
+def invite_users(request, pk):
+    vacation = get_object_or_404(VacationPlan, pk=pk, owner=request.user)
+    user_ids = request.POST.getlist("shared_with")
+    users = User.objects.filter(id__in=user_ids)
+    vacation.shared_with.add(*users)
+    messages.success(request, "Users invited successfully!")
+    return redirect("vacation_detail", pk=pk)
+
+
+@login_required
+@require_http_methods(["POST"])
+def manage_users(request, pk):
+    vacation = get_object_or_404(VacationPlan, pk=pk, owner=request.user)
+    user_ids = request.POST.getlist("remove_users")
+    users = User.objects.filter(id__in=user_ids)
+    vacation.shared_with.remove(*users)
+    messages.success(request, "Users removed successfully!")
+    return redirect("vacation_detail", pk=pk)
+
+
+def clean_share_with_emails(self):
+    emails = self.cleaned_data.get("share_with_emails", "")
+    email_list = [email.strip() for email in emails.split(",") if email.strip()]
+    for email in email_list:
+        try:
+            validate_email(email)
+        except ValidationError:
+            raise ValidationError(f"Invalid email address: {email}")
+    return email_list

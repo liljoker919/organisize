@@ -171,11 +171,23 @@
     <button class="btn btn-info mb-3" data-bs-toggle="modal" data-bs-target="#activityModal">Add Activity</button>
     {% endif %}
 
+    <h4>Shared With</h4>
+    <ul>
+        {% for user in shared_users %}
+        <li>{{ user.username }} ({{ user.email }})</li>
+        {% endfor %}
+    </ul>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inviteModal">Invite</button>
+    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#manageModal">Manage</button>
+
+
 
     <!-- Include Modals -->
     {% include "planner/modals/add_flight_modal.html" %}
     {% include "planner/modals/add_lodging_modal.html" %}
     {% include "planner/modals/add_activity_modal.html" %}
+    {% include "planner/modals/invite_modal.html" %}
+    {% include "planner/modals/edit_vacation_modal.html" %}
     {% endif %}
 
     <!-- Convert to Booked button for Planned trips -->

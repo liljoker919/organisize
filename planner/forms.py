@@ -1,13 +1,16 @@
 from django import forms
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from .models import VacationPlan, Flight, Lodging, Activity
 from django.contrib.auth.models import User
 
 
 class VacationPlanForm(forms.ModelForm):
-    shared_with = forms.ModelMultipleChoiceField(
-        queryset=User.objects.all(),
+    share_with_emails = forms.CharField(
         required=False,
-        widget=forms.SelectMultiple(attrs={"class": "form-control"}),
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        help_text="Enter email addresses separated by commas.",
+        label="Share with (Emails)",
     )
 
     class Meta:
@@ -20,7 +23,6 @@ class VacationPlanForm(forms.ModelForm):
             "whos_going",
             "notes",
             "trip_type",
-            "shared_with",
         ]
         widgets = {
             "start_date": forms.DateInput(
@@ -29,14 +31,42 @@ class VacationPlanForm(forms.ModelForm):
             "end_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
             ),
-            "destination": forms.TextInput(attrs={"class": "form-control"}),
-            "estimated_cost": forms.NumberInput(
-                attrs={"class": "form-control", "step": "0.01"}
+            "destination": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Enter destination"}
             ),
-            "whos_going": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
-            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "estimated_cost": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "placeholder": "Enter estimated cost",
+                }
+            ),
+            "whos_going": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": "Enter names of attendees",
+                }
+            ),
+            "notes": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Enter additional notes",
+                }
+            ),
             "trip_type": forms.Select(attrs={"class": "form-control"}),
         }
+
+    def clean_share_with_emails(self):
+        emails = self.cleaned_data.get("share_with_emails", "")
+        email_list = [email.strip() for email in emails.split(",") if email.strip()]
+        for email in email_list:
+            try:
+                validate_email(email)
+            except ValidationError:
+                raise ValidationError(f"Invalid email address: {email}")
+        return email_list
 
 
 class FlightForm(forms.ModelForm):
@@ -153,3 +183,10 @@ class ActivityForm(forms.ModelForm):
                 }
             ),
         }
+
+
+class ShareVacationForm(forms.Form):
+    emails = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        help_text="Enter email addresses separated by commas.",
+    )
