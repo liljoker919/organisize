@@ -26,6 +26,7 @@ from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.views.decorators.http import require_POST
 
 
 def home(request):
@@ -301,6 +302,7 @@ def delete_lodging(request, pk):
     return redirect("vacation_detail", pk=vacation_pk)
 
 
+# Add activity view
 @require_http_methods(["POST"])
 def add_activity(request, pk):
     vacation = get_object_or_404(VacationPlan, pk=pk)
@@ -362,6 +364,7 @@ def edit_activity(request, pk):
 
 # vote activity view
 @login_required
+@require_POST # This ensure that view only handles POST requests.
 def vote_activity(request,pk):
     activity = get_object_or_404(Activity, pk=pk)
 
