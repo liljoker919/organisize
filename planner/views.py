@@ -54,8 +54,10 @@ def create_vacation(request):
             vacation.save()
 
             # Process shared emails
-            emails = form.cleaned_data.get("share_with_emails", "").split(",")
-            emails = [email.strip() for email in emails if email.strip()]
+            # emails = form.cleaned_data.get("share_with_emails", "").split(",")
+            # emails = [email.strip() for email in emails if email.strip()]
+
+            emails = form.cleaned_data.get("share_with_emails", [])
             for email in emails:
                 user = User.objects.filter(email=email).first()
                 if user:
@@ -125,6 +127,7 @@ def vacation_detail(request, pk):
         VacationPlan, Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))
     )
 
+    
     # Initialize forms for static modals
     lodging_form = LodgingForm()
     activity_form = ActivityForm()
@@ -152,6 +155,7 @@ def vacation_detail(request, pk):
         "lodging_forms": lodging_forms,
         "activity_forms": activity_forms,
         "flight_forms": flight_forms,
+        "activities" : activities
     }
     return render(request, "planner/vacation_detail.html", context)
 
@@ -306,6 +310,7 @@ def add_activity(request, pk):
         activity = form.save(commit=False)
         activity.vacation = vacation
         activity.save()
+        messages.success(request, "New Activity has been created!")
         return redirect("vacation_detail", pk=pk)
 
     flight_form = FlightForm()
@@ -353,6 +358,20 @@ def edit_activity(request, pk):
     return render(
         request, "planner/edit_activity.html", {"form": form, "activity": activity}
     )
+
+
+# vote activity view
+@login_required
+def vote_activity(request,pk):
+    activity = get_object_or_404(Activity, pk=pk)
+
+    if request.user not in activity.voted_users.all():
+        activity.votes += 1
+        activity.voted_users.add(request.user)
+        activity.save()
+        messages.success(request, "Your vote has been counted!")
+        
+    return redirect('vacation_detail', pk=activity.vacation.pk)
 
 
 # delete_activity view

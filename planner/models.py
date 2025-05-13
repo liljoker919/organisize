@@ -84,7 +84,16 @@ class Activity(models.Model):
     actual_cost = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True
     )
+    suggested_by = models.ForeignKey(User,on_delete=models.CASCADE,related_name='suggested_activities',default=1)
+    votes = models.IntegerField(default=0)
+    voted_users = models.ManyToManyField(User, related_name='voted_activities', blank=True)
 
+    def __str__(self):
+        return self.name
+
+    # will display activities with highest votes first.
+    class Meta:
+        ordering = ["-votes"]
 
 class Group(models.Model):
     """
