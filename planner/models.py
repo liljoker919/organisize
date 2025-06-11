@@ -98,14 +98,24 @@ class Activity(models.Model):
 class Group(models.Model):
     """
     Group model to enable group collaboration and voting on activities.
-    The model should include fields for the group name, invite link, and members
+    Includes fields for name, invite link, members, creator, description, and invite link expiry.
     """
 
     name = models.CharField(max_length=200)
     invite_link = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    invite_link_expiry = models.DateTimeField(null=True, blank=True)
     members = models.ManyToManyField(User, related_name="vacation_groups")
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="created_groups")
+    description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def is_invite_active(self):
+        """Check if the invite link is active based on expiry date."""
+        from django.utils import timezone
+        if self.invite_link_expiry:
+            return self.invite_link_expiry > timezone.now()
+        return True
 
     def __str__(self):
         return self.name
