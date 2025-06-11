@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ group.name }}</h2>
+        <a href="{% url 'group_list' %}" class="btn btn-outline-secondary">Back to Groups</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Group Information</h5>
+                    
+                    {% if group.description %}
+                    <p class="card-text">
+                        <strong>Description:</strong><br>
+                        {{ group.description|linebreaks }}
+                    </p>
+                    {% endif %}
+                    
+                    <p class="card-text">
+                        <strong>Creator:</strong> {{ group.creator.username }}<br>
+                        <strong>Created:</strong> {{ group.created_at|date:"M d, Y H:i" }}<br>
+                        <strong>Members:</strong> {{ group.members.count }}
+                    </p>
+
+                    {% if group.invite_link_expiry %}
+                    <p class="card-text">
+                        <strong>Invite Link Expires:</strong> {{ group.invite_link_expiry|date:"M d, Y H:i" }}<br>
+                        <strong>Invite Status:</strong> 
+                        {% if group.is_invite_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Expired</span>
+                        {% endif %}
+                    </p>
+                    {% else %}
+                    <p class="card-text">
+                        <strong>Invite Link:</strong> <span class="badge bg-success">Never expires</span>
+                    </p>
+                    {% endif %}
+
+                    {% if user == group.creator %}
+                    <div class="mt-3">
+                        <p class="card-text">
+                            <strong>Invite Link:</strong><br>
+                            <input type="text" class="form-control" readonly 
+                                   value="{{ request.scheme }}://{{ request.get_host }}{% url 'group_join' group.invite_link %}"
+                                   onclick="this.select()">
+                            <small class="form-text text-muted">Share this link to invite others to join the group.</small>
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Members ({{ group.members.count }})</h5>
+                    <ul class="list-group list-group-flush">
+                        {% for member in group.members.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ member.username }}
+                            {% if member == group.creator %}
+                                <span class="badge bg-primary">Creator</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Group Vacations</h5>
+                    {% if group.vacations.all %}
+                        <ul class="list-group list-group-flush">
+                            {% for vacation in group.vacations.all %}
+                            <li class="list-group-item">
+                                <a href="{% url 'vacation_detail' vacation.pk %}" class="text-decoration-none">
+                                    {{ vacation.destination }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ vacation.start_date }} to {{ vacation.end_date }}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No vacations planned yet for this group.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

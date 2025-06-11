@@ -25,4 +25,8 @@ urlpatterns = [
     # User management
     path("vacations/<int:pk>/invite/", views.invite_users, name="invite_users"),
     path("vacations/<int:pk>/manage/", views.manage_users, name="manage_users"),
+    # Groups
+    path("groups/", views.group_list, name="group_list"),
+    path("groups/create/", views.create_group, name="create_group"),
+    path("groups/<int:pk>/", views.group_detail, name="group_detail"),
 ]

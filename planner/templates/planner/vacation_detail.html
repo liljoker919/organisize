@@ -9,6 +9,14 @@
         <strong>Estimated Cost:</strong> ${{ vacation.estimated_cost }}<br>
         {% if group %}
         <strong>Group:</strong> {{ group.name }}<br>
+        {% if group.description %}
+        <strong>Group Description:</strong> {{ group.description }}<br>
+        {% endif %}
+        <strong>Group Creator:</strong> {{ group.creator.username }}<br>
+        {% if group.invite_link_expiry %}
+        <strong>Invite Link Expires:</strong> {{ group.invite_link_expiry }}<br>
+        <strong>Invite Active:</strong> {% if group.is_invite_active %}Yes{% else %}No{% endif %}<br>
+        {% endif %}
         {% endif %}
     </p>
 

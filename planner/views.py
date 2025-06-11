@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import inlineformset_factory
-from .models import VacationPlan, Flight, Lodging, Activity
+from .models import VacationPlan, Flight, Lodging, Activity, Group
 from .forms import (
     VacationPlanForm,
     FlightForm,
     LodgingForm,
     ActivityForm,
     ShareVacationForm,
+    GroupForm,
 )
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
@@ -149,6 +150,7 @@ def vacation_detail(request, pk):
 
     context = {
         "vacation": vacation,
+        "group": vacation.group,  # Add group to context
         "lodging_form": lodging_form,
         "activity_form": activity_form,
         "flight_form": flight_form,
@@ -469,3 +471,42 @@ def clean_share_with_emails(self):
         except ValidationError:
             raise ValidationError(f"Invalid email address: {email}")
     return email_list
+
+
+# Group Views
+@login_required
+def group_list(request):
+    """List all groups the user is a member of or created"""
+    groups = Group.objects.filter(
+        Q(members=request.user) | Q(creator=request.user)
+    ).distinct()
+    return render(request, "planner/group_list.html", {"groups": groups})
+
+
+@login_required
+def group_detail(request, pk):
+    """View group details"""
+    group = get_object_or_404(Group, pk=pk)
+    # Check if user is a member or creator
+    if not (request.user in group.members.all() or request.user == group.creator):
+        raise Http404("Group not found")
+    
+    return render(request, "planner/group_detail.html", {"group": group})
+
+
+@login_required
+def create_group(request):
+    """Create a new group"""
+    if request.method == "POST":
+        form = GroupForm(request.POST)
+        if form.is_valid():
+            group = form.save(commit=False)
+            group.creator = request.user
+            group.save()
+            # Add creator as a member
+            group.members.add(request.user)
+            messages.success(request, "Group created successfully!")
+            return redirect("group_detail", pk=group.pk)
+    else:
+        form = GroupForm()
+    return render(request, "planner/create_group.html", {"form": form})

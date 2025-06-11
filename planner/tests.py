@@ -2,7 +2,9 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
+from django.core.exceptions import ValidationError
 from planner.models import Group
+from planner.forms import GroupForm
 
 
 class GroupModelTest(TestCase):
@@ -101,3 +103,37 @@ class GroupModelTest(TestCase):
         self.assertEqual(group.members.count(), 2)
         self.assertIn(group, self.user1.vacation_groups.all())
         self.assertIn(group, self.user2.vacation_groups.all())
+
+
+class GroupFormTest(TestCase):
+    def test_form_validation_future_expiry(self):
+        """Test that form accepts future expiry dates"""
+        future_time = timezone.now() + timedelta(hours=1)
+        form_data = {
+            'name': 'Test Group',
+            'description': 'Test description',
+            'invite_link_expiry': future_time.strftime('%Y-%m-%dT%H:%M')
+        }
+        form = GroupForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+    def test_form_validation_past_expiry(self):
+        """Test that form rejects past expiry dates"""
+        past_time = timezone.now() - timedelta(hours=1)
+        form_data = {
+            'name': 'Test Group',
+            'description': 'Test description',
+            'invite_link_expiry': past_time.strftime('%Y-%m-%dT%H:%M')
+        }
+        form = GroupForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('invite_link_expiry', form.errors)
+
+    def test_form_validation_no_expiry(self):
+        """Test that form works without expiry date"""
+        form_data = {
+            'name': 'Test Group',
+            'description': 'Test description'
+        }
+        form = GroupForm(data=form_data)
+        self.assertTrue(form.is_valid())
