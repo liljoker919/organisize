@@ -87,6 +87,7 @@ class Activity(models.Model):
     suggested_by = models.ForeignKey(User,on_delete=models.CASCADE,related_name='suggested_activities')
     votes = models.IntegerField(default=0)
     voted_users = models.ManyToManyField(User, related_name='voted_activities', blank=True)
+    notes = models.TextField(blank=True, help_text="Personal notes for this activity")
 
     def __str__(self):
         return self.name

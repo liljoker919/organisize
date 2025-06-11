@@ -140,7 +140,10 @@
 
 
     <!-- Activities Section -->
-    <h4>Activities</h4>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Activities</h4>
+        <a href="{% url 'activities_list' %}" class="btn btn-outline-secondary btn-sm">View All Activities</a>
+    </div>
     <ul class="list-group mb-3">
         {% for activity in activities %}
         <li class="list-group-item mt-1">
@@ -152,7 +155,10 @@
                     <strong>Suggested by:</strong><p>{{ activity.suggested_by.username }}</p>
                     Votes: <strong>{{ activity.votes }}</strong> <br>
                     {% if activity.actual_cost %}
-                    <small><strong>Cost:</strong> ${{ activity.actual_cost }}</small>
+                    <small><strong>Cost:</strong> ${{ activity.actual_cost }}</small><br>
+                    {% endif %}
+                    {% if activity.notes %}
+                    <small><strong>Notes:</strong> {{ activity.notes|truncatewords:15 }}</small>
                     {% endif %}
                 </div>
                 <div class="d-flex flex-column  align-items-end">
