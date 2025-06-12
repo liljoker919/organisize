@@ -1,7 +1,7 @@
 from django import forms
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from .models import VacationPlan, Flight, Lodging, Activity
+from .models import VacationPlan, Flight, Lodging, Activity, Group
 from django.contrib.auth.models import User
 
 
@@ -197,3 +197,36 @@ class ShareVacationForm(forms.Form):
         widget=forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         help_text="Enter email addresses separated by commas.",
     )
+
+
+class GroupForm(forms.ModelForm):
+    class Meta:
+        model = Group
+        fields = ["name", "description", "invite_link_expiry"]
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Enter group name"}
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Enter group description (optional)",
+                }
+            ),
+            "invite_link_expiry": forms.DateTimeInput(
+                attrs={
+                    "type": "datetime-local",
+                    "class": "form-control",
+                    "placeholder": "Invite link expiry (optional)",
+                }
+            ),
+        }
+
+    def clean_invite_link_expiry(self):
+        """Validate that invite_link_expiry is in the future"""
+        from django.utils import timezone
+        expiry = self.cleaned_data.get('invite_link_expiry')
+        if expiry and expiry <= timezone.now():
+            raise ValidationError("Invite link expiry must be in the future.")
+        return expiry

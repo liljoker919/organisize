@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Groups</h2>
+        <a href="{% url 'create_group' %}" class="btn btn-primary">Create New Group</a>
+    </div>
+
+    {% if groups %}
+        <div class="row">
+            {% for group in groups %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ group.name }}</h5>
+                        {% if group.description %}
+                        <p class="card-text">{{ group.description|truncatewords:20 }}</p>
+                        {% endif %}
+                        <p class="card-text">
+                            <small class="text-muted">
+                                Created by {{ group.creator.username }} on {{ group.created_at|date:"M d, Y" }}
+                            </small>
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                Members: {{ group.members.count }}
+                            </small>
+                        </p>
+                        {% if group.invite_link_expiry %}
+                        <p class="card-text">
+                            <small class="text-muted">
+                                Invite expires: {{ group.invite_link_expiry|date:"M d, Y H:i" }}
+                                {% if group.is_invite_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Expired</span>
+                                {% endif %}
+                            </small>
+                        </p>
+                        {% endif %}
+                        <a href="{% url 'group_detail' group.pk %}" class="btn btn-outline-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center mt-5">
+            <h4>No groups yet</h4>
+            <p>Create your first group to start collaborating on vacation plans!</p>
+            <a href="{% url 'create_group' %}" class="btn btn-primary">Create New Group</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
