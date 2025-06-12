@@ -47,6 +47,17 @@ class VacationListView(ListView):
 
 
 @login_required
+def activities_list(request):
+    """Standalone activities page showing all activities the user has access to"""
+    # Get all activities from vacations the user owns or is shared with
+    activities = Activity.objects.filter(
+        Q(vacation__owner=request.user) | Q(vacation__shared_with=request.user)
+    ).distinct().select_related('vacation', 'suggested_by')
+    
+    return render(request, "planner/activities_list.html", {"activities": activities})
+
+
+@login_required
 def create_vacation(request):
     if request.method == "POST":
         form = VacationPlanForm(request.POST)
@@ -313,6 +324,7 @@ def add_activity(request, pk):
     if form.is_valid():
         activity = form.save(commit=False)
         activity.vacation = vacation
+        activity.suggested_by = request.user
         activity.save()
         messages.success(request, "New Activity has been created!")
         return redirect("vacation_detail", pk=pk)

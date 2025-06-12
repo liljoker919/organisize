@@ -29,6 +29,10 @@
                             href="{% url 'vacation_list' %}">Vacations</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'activities_list' %}active{% endif %}"
+                            href="{% url 'activities_list' %}">Activities</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'create_vacation' %}active{% endif %}"
                             href="{% url 'create_vacation' %}">Add Vacation</a>
                     </li>
