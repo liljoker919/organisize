@@ -156,7 +156,7 @@ class LodgingForm(forms.ModelForm):
 class ActivityForm(forms.ModelForm):
     class Meta:
         model = Activity
-        fields = ["name", "date", "start_time", "actual_cost"]
+        fields = ["name", "date", "start_time", "actual_cost", "notes"]
         widgets = {
             "name": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Activity name"}
@@ -180,6 +180,13 @@ class ActivityForm(forms.ModelForm):
                     "class": "form-control",
                     "placeholder": "Actual cost",
                     "step": "0.01",
+                }
+            ),
+            "notes": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Personal notes for this activity",
                 }
             ),
         }
