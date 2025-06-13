@@ -14,10 +14,6 @@ urlpatterns = [
     path("<int:pk>/edit/", views.edit_vacation, name="edit_vacation"),
     path("<int:pk>/delete/", views.delete_vacation, name="delete_vacation"),
     path("<int:pk>/convert/", views.convert_to_booked, name="convert_to_booked"),
-    # Flights
-    path("<int:pk>/add-flight/", views.add_flight, name="add_flight"),
-    path("flight/<int:pk>/edit/", views.edit_flight, name="edit_flight"),
-    path("flight/<int:pk>/delete/", views.delete_flight, name="delete_flight"),
     # Transportation
     path("<int:pk>/add-transportation/", views.add_transportation, name="add_transportation"),
     path("transportation/<int:pk>/edit/", views.edit_transportation, name="edit_transportation"),

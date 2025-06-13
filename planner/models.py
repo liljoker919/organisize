@@ -76,22 +76,6 @@ class Transportation(models.Model):
         return f"{self.get_transportation_type_display()}: {self.departure_location} → {self.arrival_location}"
 
 
-# Backward compatibility alias - keep Flight model temporarily for migration
-class Flight(models.Model):
-    vacation = models.ForeignKey(
-        VacationPlan, on_delete=models.CASCADE, related_name="flights"
-    )
-    airline = models.CharField(max_length=100)
-    confirmation = models.CharField(max_length=100)
-    departure_airport = models.CharField(max_length=100)
-    arrival_airport = models.CharField(max_length=100)
-    departure_time = models.DateTimeField()
-    arrival_time = models.DateTimeField()
-    actual_cost = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
-
-
 class Lodging(models.Model):
     LODGING_TYPE_CHOICES = [
         ('hotel', 'Hotel'),
