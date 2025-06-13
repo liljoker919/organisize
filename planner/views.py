@@ -177,6 +177,11 @@ def vacation_detail(request, pk):
     transportation_forms = {transportation.id: TransportationForm(instance=transportation) for transportation in transportations}
 
     lodgings = vacation.lodgings.all()
+    
+    # Get all users excluding those already associated with the vacation
+    shared_user_ids = vacation.shared_with.values_list('id', flat=True)
+    all_users = User.objects.exclude(id__in=list(shared_user_ids)).exclude(id=vacation.owner.id)
+    
     context = {
         "vacation": vacation,
         "group": vacation.group,  # Add group to context
@@ -189,6 +194,7 @@ def vacation_detail(request, pk):
         "transportations": transportations,
         "lodgings": lodgings,
         "shared_users": vacation.shared_with.all(),
+        "all_users": all_users,
     }
     return render(request, "planner/vacation_detail.html", context)
 

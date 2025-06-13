@@ -540,6 +540,34 @@ class ViewTest(TestCase):
         response = self.client.get(reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
         self.assertEqual(response.status_code, 404)
 
+    def test_vacation_detail_invite_modal_context(self):
+        """Test that vacation detail view provides all_users context for invite modal"""
+        # Create additional users to test filtering
+        user2 = User.objects.create_user(username='user2', password='testpass123')
+        user3 = User.objects.create_user(username='user3', password='testpass123')
+        user4 = User.objects.create_user(username='user4', password='testpass123')
+        
+        # Share vacation with user2
+        self.vacation.shared_with.add(user2)
+        
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('all_users', response.context)
+        
+        # all_users should exclude owner (self.user) and already shared users (user2)
+        all_users = response.context['all_users']
+        all_user_ids = [user.id for user in all_users]
+        
+        # Should include user3 and user4
+        self.assertIn(user3.id, all_user_ids)
+        self.assertIn(user4.id, all_user_ids)
+        
+        # Should NOT include owner (self.user) and shared user (user2)
+        self.assertNotIn(self.user.id, all_user_ids)
+        self.assertNotIn(user2.id, all_user_ids)
+
     def test_create_vacation_view_get(self):
         """Test create vacation view GET request"""
         self.client.login(username='testuser', password='testpass123')
