@@ -144,15 +144,11 @@ def vacation_detail(request, pk):
 
     
     # Initialize forms for static modals
-    lodging_form = LodgingForm()
     activity_form = ActivityForm()
     flight_form = FlightForm()
     edit_vacation_form = VacationPlanForm(instance=vacation)
 
     # Initialize forms for dynamic modals (e.g., editing existing objects)
-    lodgings = vacation.lodgings.all()
-    lodging_forms = {lodging.id: LodgingForm(instance=lodging) for lodging in lodgings}
-
     activities = vacation.activities.all()
     activity_forms = {
         activity.id: ActivityForm(instance=activity) for activity in activities
@@ -164,11 +160,9 @@ def vacation_detail(request, pk):
     context = {
         "vacation": vacation,
         "group": vacation.group,  # Add group to context
-        "lodging_form": lodging_form,
         "activity_form": activity_form,
         "flight_form": flight_form,
         "edit_vacation_form": edit_vacation_form,
-        "lodging_forms": lodging_forms,
         "activity_forms": activity_forms,
         "flight_forms": flight_forms,
         "activities": activities,
@@ -180,12 +174,30 @@ def vacation_detail(request, pk):
 
 
 @login_required
+
+def vacation_stays(request, pk):
+    """Separate stays/lodging page with timeline view"""
+
 def vacation_itinerary(request, pk):
     """Generate a day-by-day itinerary for a vacation"""
-    vacation = get_object_or_404(
-        VacationPlan, Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))
-    )
+
     
+ copilot/fix-26
+    # Get lodgings ordered by check-in date for timeline
+    lodgings = vacation.lodgings.all().order_by('check_in')
+    
+    # Initialize forms for modals
+    lodging_form = LodgingForm()
+    lodging_forms = {lodging.id: LodgingForm(instance=lodging) for lodging in lodgings}
+    
+    context = {
+        "vacation": vacation,
+        "lodgings": lodgings,
+        "lodging_form": lodging_form,
+        "lodging_forms": lodging_forms,
+    }
+    return render(request, "planner/vacation_stays.html", context)
+
     # Get all vacation events
     flights = vacation.flights.all()
     lodgings = vacation.lodgings.all()
@@ -287,6 +299,7 @@ def vacation_itinerary(request, pk):
     }
     
     return render(request, "planner/vacation_itinerary.html", context)
+
 
 
 @require_http_methods(["POST"])

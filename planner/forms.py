@@ -121,13 +121,16 @@ class FlightForm(forms.ModelForm):
 class LodgingForm(forms.ModelForm):
     class Meta:
         model = Lodging
-        fields = ["confirmation", "name", "check_in", "check_out", "actual_cost"]
+        fields = ["confirmation", "name", "lodging_type", "check_in", "check_out", "actual_cost"]
         widgets = {
             "confirmation": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Confirmation #"}
             ),
             "name": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Lodging name"}
+            ),
+            "lodging_type": forms.Select(
+                attrs={"class": "form-control"}
             ),
             "check_in": forms.DateInput(
                 attrs={
