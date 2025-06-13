@@ -1,0 +1,80 @@
+{% extends "planner/base.html" %}
+
+{% block title %}Edit Transportation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Transportation</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            {{ form.transportation_type.label_tag }}
+            {{ form.transportation_type }}
+            {% if form.transportation_type.errors %}
+                <div class="invalid-feedback d-block">{{ form.transportation_type.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.provider.label_tag }}
+            {{ form.provider }}
+            {% if form.provider.errors %}
+                <div class="invalid-feedback d-block">{{ form.provider.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.confirmation.label_tag }}
+            {{ form.confirmation }}
+            {% if form.confirmation.errors %}
+                <div class="invalid-feedback d-block">{{ form.confirmation.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.departure_location.label_tag }}
+            {{ form.departure_location }}
+            {% if form.departure_location.errors %}
+                <div class="invalid-feedback d-block">{{ form.departure_location.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.arrival_location.label_tag }}
+            {{ form.arrival_location }}
+            {% if form.arrival_location.errors %}
+                <div class="invalid-feedback d-block">{{ form.arrival_location.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.departure_time.label_tag }}
+            {{ form.departure_time }}
+            {% if form.departure_time.errors %}
+                <div class="invalid-feedback d-block">{{ form.departure_time.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.arrival_time.label_tag }}
+            {{ form.arrival_time }}
+            {% if form.arrival_time.errors %}
+                <div class="invalid-feedback d-block">{{ form.arrival_time.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.actual_cost.label_tag }}
+            {{ form.actual_cost }}
+            {% if form.actual_cost.errors %}
+                <div class="invalid-feedback d-block">{{ form.actual_cost.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{% url 'vacation_detail' transportation.vacation.pk %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

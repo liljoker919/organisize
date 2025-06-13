@@ -1,0 +1,151 @@
+<div class="modal fade" id="transportationModal" tabindex="-1" aria-labelledby="transportationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'add_transportation' vacation.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="transportationModalLabel">Add Transportation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% for field in transportation_form %}
+                    <!-- Exclude 'actual_cost' here because it is handled separately below when the trip type is 'booked' -->
+                    {% if field.name != 'actual_cost' %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="invalid-feedback d-block">{{ field.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if vacation.trip_type == 'booked' %}
+                    <div class="mb-3">
+                        {{ transportation_form.actual_cost.label_tag }}
+                        {{ transportation_form.actual_cost }}
+                        {% if transportation_form.actual_cost.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ transportation_form.actual_cost.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save Transportation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dynamic label and placeholder updates based on transportation type
+document.addEventListener('DOMContentLoaded', function() {
+    const typeSelect = document.getElementById('id_transportation_type');
+    const providerField = document.querySelector('[name="provider"]');
+    const departureField = document.querySelector('[name="departure_location"]');
+    const arrivalField = document.querySelector('[name="arrival_location"]');
+    
+    function updateLabelsAndPlaceholders() {
+        const selectedType = typeSelect.value;
+        
+        // Update provider field
+        const providerPlaceholder = providerField.getAttribute(`data-${selectedType}-placeholder`);
+        if (providerPlaceholder) {
+            providerField.setAttribute('placeholder', providerPlaceholder);
+        }
+        
+        // Update departure location field
+        const departurePlaceholder = departureField.getAttribute(`data-${selectedType}-placeholder`);
+        if (departurePlaceholder) {
+            departureField.setAttribute('placeholder', departurePlaceholder);
+        }
+        
+        // Update arrival location field
+        const arrivalPlaceholder = arrivalField.getAttribute(`data-${selectedType}-placeholder`);
+        if (arrivalPlaceholder) {
+            arrivalField.setAttribute('placeholder', arrivalPlaceholder);
+        }
+        
+        // Update labels
+        const providerLabel = document.querySelector('label[for="id_provider"]');
+        const departureLabel = document.querySelector('label[for="id_departure_location"]');
+        const arrivalLabel = document.querySelector('label[for="id_arrival_location"]');
+        
+        if (providerLabel) {
+            switch(selectedType) {
+                case 'flight':
+                    providerLabel.textContent = 'Airline';
+                    break;
+                case 'train':
+                    providerLabel.textContent = 'Train operator';
+                    break;
+                case 'bus':
+                    providerLabel.textContent = 'Bus company';
+                    break;
+                case 'ferry':
+                    providerLabel.textContent = 'Ferry operator';
+                    break;
+                case 'car':
+                    providerLabel.textContent = 'Car rental company';
+                    break;
+                default:
+                    providerLabel.textContent = 'Provider';
+            }
+        }
+        
+        if (departureLabel) {
+            switch(selectedType) {
+                case 'flight':
+                    departureLabel.textContent = 'Departure airport';
+                    break;
+                case 'train':
+                    departureLabel.textContent = 'Departure station';
+                    break;
+                case 'bus':
+                    departureLabel.textContent = 'Departure terminal';
+                    break;
+                case 'ferry':
+                    departureLabel.textContent = 'Departure port';
+                    break;
+                case 'car':
+                    departureLabel.textContent = 'Pickup location';
+                    break;
+                default:
+                    departureLabel.textContent = 'Departure location';
+            }
+        }
+        
+        if (arrivalLabel) {
+            switch(selectedType) {
+                case 'flight':
+                    arrivalLabel.textContent = 'Arrival airport';
+                    break;
+                case 'train':
+                    arrivalLabel.textContent = 'Arrival station';
+                    break;
+                case 'bus':
+                    arrivalLabel.textContent = 'Arrival terminal';
+                    break;
+                case 'ferry':
+                    arrivalLabel.textContent = 'Arrival port';
+                    break;
+                case 'car':
+                    arrivalLabel.textContent = 'Drop-off location';
+                    break;
+                default:
+                    arrivalLabel.textContent = 'Arrival location';
+            }
+        }
+    }
+    
+    // Initial setup
+    updateLabelsAndPlaceholders();
+    
+    // Update on change
+    typeSelect.addEventListener('change', updateLabelsAndPlaceholders);
+});
+</script>

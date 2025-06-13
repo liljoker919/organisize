@@ -1,0 +1,46 @@
+{% load activity_extras %}
+{% for transportation in transportations %}
+<div class="modal fade" id="editTransportationModal-{{ transportation.id }}" tabindex="-1" aria-labelledby="editTransportationModalLabel-{{ transportation.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'edit_transportation' transportation.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTransportationModalLabel-{{ transportation.id }}">Edit Transportation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% with form=transportation_forms|dict_lookup:transportation.id %}
+                    {% for field in form %}
+                    {% if field.name != 'actual_cost' %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="invalid-feedback d-block">{{ field.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if vacation.trip_type == 'booked' %}
+                    <div class="mb-3">
+                        {{ form.actual_cost.label_tag }}
+                        {{ form.actual_cost }}
+                        {% if form.actual_cost.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.actual_cost.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
