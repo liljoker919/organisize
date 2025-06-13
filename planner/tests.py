@@ -1,11 +1,12 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.utils import timezone
-from datetime import timedelta, date, time
+from datetime import timedelta, date, time, datetime
 from django.core.exceptions import ValidationError
 from django.urls import reverse
-from planner.models import Group, VacationPlan, Lodging, Flight, Transportation
-from planner.forms import GroupForm, LodgingForm, TransportationForm
+
+from planner.models import Group, VacationPlan, Lodging, Activity, Flight, Transportation
+from planner.forms import GroupForm, LodgingForm, ActivityForm, FlightForm, VacationPlanForm, TransportationForm
 
 
 
@@ -145,6 +146,12 @@ class GroupFormTest(TestCase):
 class LodgingModelTest(TestCase):
     def setUp(self):
         """Set up test data"""
+
+
+class VacationItineraryTest(TestCase):
+    def setUp(self):
+        """Set up test data for itinerary tests"""
+
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -661,6 +668,12 @@ class ViewTest(TestCase):
         response = self.client.get(reverse('add_lodging', kwargs={'pk': self.vacation.pk}))
         self.assertEqual(response.status_code, 405)  # Method Not Allowed
 
+
+
+class VacationItineraryTestWithEvents(TestCase):
+    def setUp(self):
+        """Set up test data for itinerary tests with events"""
+
     def test_add_lodging_view_post(self):
         """Test add lodging view POST request"""
         self.client.login(username='testuser', password='testpass123')
@@ -726,6 +739,7 @@ class ViewTest(TestCase):
 class VacationItineraryTestWithEvents(TestCase):
     def setUp(self):
         """Set up test data"""
+
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -749,8 +763,8 @@ class VacationItineraryTestWithEvents(TestCase):
             confirmation='ABC123',
             departure_airport='NYC',
             arrival_airport='LAX',
-            departure_time=timezone.datetime(2024, 6, 15, 10, 30),
-            arrival_time=timezone.datetime(2024, 6, 15, 14, 30),
+            departure_time=timezone.now().replace(year=2024, month=6, day=15, hour=10, minute=30, second=0, microsecond=0),
+            arrival_time=timezone.now().replace(year=2024, month=6, day=15, hour=14, minute=30, second=0, microsecond=0),
             actual_cost=500.00
         )
         
@@ -918,8 +932,8 @@ class TransportationModelTest(TestCase):
             confirmation='ABC123',
             departure_location='NYC',
             arrival_location='LAX',
-            departure_time=timezone.datetime(2024, 6, 15, 10, 30),
-            arrival_time=timezone.datetime(2024, 6, 15, 14, 30),
+            departure_time=timezone.make_aware(datetime(2024, 6, 15, 10, 30)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 15, 14, 30)),
             actual_cost=500.00
         )
         
@@ -937,8 +951,8 @@ class TransportationModelTest(TestCase):
             confirmation='TRAIN456',
             departure_location='Union Station',
             arrival_location='Penn Station',
-            departure_time=timezone.datetime(2024, 6, 16, 8, 0),
-            arrival_time=timezone.datetime(2024, 6, 16, 16, 0),
+            departure_time=timezone.make_aware(datetime(2024, 6, 16, 8, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 16, 16, 0)),
             actual_cost=150.00
         )
         
@@ -956,8 +970,8 @@ class TransportationModelTest(TestCase):
             confirmation='BUS789',
             departure_location='Downtown Terminal',
             arrival_location='City Center Terminal',
-            departure_time=timezone.datetime(2024, 6, 16, 12, 0),
-            arrival_time=timezone.datetime(2024, 6, 16, 18, 0),
+            departure_time=timezone.make_aware(datetime(2024, 6, 16, 12, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 16, 18, 0)),
             actual_cost=75.00
         )
         
@@ -974,8 +988,8 @@ class TransportationModelTest(TestCase):
             'confirmation': 'FERRY123',
             'departure_location': 'Port A',
             'arrival_location': 'Port B',
-            'departure_time': timezone.datetime(2024, 6, 17, 10, 0).strftime('%Y-%m-%dT%H:%M'),
-            'arrival_time': timezone.datetime(2024, 6, 17, 12, 0).strftime('%Y-%m-%dT%H:%M'),
+            'departure_time': timezone.make_aware(datetime(2024, 6, 17, 10, 0)).strftime('%Y-%m-%dT%H:%M'),
+            'arrival_time': timezone.make_aware(datetime(2024, 6, 17, 12, 0)).strftime('%Y-%m-%dT%H:%M'),
             'actual_cost': '100.00'
         }
         form = TransportationForm(data=form_data)
@@ -990,8 +1004,8 @@ class TransportationModelTest(TestCase):
             confirmation='CAR999',
             departure_location='Airport Rental',
             arrival_location='Hotel',
-            departure_time=timezone.datetime(2024, 6, 15, 15, 0),
-            arrival_time=timezone.datetime(2024, 6, 15, 16, 0),
+            departure_time=timezone.make_aware(datetime(2024, 6, 15, 15, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 15, 16, 0)),
             actual_cost=200.00
         )
         
@@ -1058,8 +1072,8 @@ class TransportationViewTest(TestCase):
             confirmation='BUS456',
             departure_location='Terminal A',
             arrival_location='Terminal B',
-            departure_time=timezone.datetime(2024, 6, 15, 12, 0),
-            arrival_time=timezone.datetime(2024, 6, 15, 16, 0),
+            departure_time=timezone.make_aware(datetime(2024, 6, 15, 12, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 15, 16, 0)),
             actual_cost=75.00
         )
         
@@ -1094,8 +1108,8 @@ class DataMigrationTest(TestCase):
             confirmation='FL123',
             departure_airport='NYC',
             arrival_airport='LAX',
-            departure_time=timezone.datetime(2024, 6, 15, 10, 0),
-            arrival_time=timezone.datetime(2024, 6, 15, 14, 0),
+            departure_time=timezone.make_aware(datetime(2024, 6, 15, 10, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 15, 14, 0)),
             actual_cost=500.00
         )
         
@@ -1111,8 +1125,8 @@ class DataMigrationTest(TestCase):
             confirmation='TR123',
             departure_location='NYC',
             arrival_location='LAX',
-            departure_time=timezone.datetime(2024, 6, 15, 10, 0),
-            arrival_time=timezone.datetime(2024, 6, 15, 14, 0),
+            departure_time=timezone.make_aware(datetime(2024, 6, 15, 10, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 15, 14, 0)),
             actual_cost=500.00
         )
         

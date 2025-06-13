@@ -3,8 +3,11 @@
 {% block content %}
 <div class="container mt-4">
     <h2>{{ vacation.destination }}</h2>
+    
+    <!-- Dates Section -->
+    {% include "planner/components/dates_section.html" %}
+    
     <p>
-        <strong>Dates:</strong> {{ vacation.start_date }} to {{ vacation.end_date }}<br>
         <strong>Status:</strong> {{ vacation.trip_type|capfirst }}<br>
         <strong>Estimated Cost:</strong> ${{ vacation.estimated_cost }}<br>
         {% if group %}
