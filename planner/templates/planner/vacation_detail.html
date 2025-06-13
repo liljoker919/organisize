@@ -20,15 +20,22 @@
         {% endif %}
     </p>
 
-    <!-- Trigger the Edit Vacation Modal -->
-    <button class="btn btn-warning mb-3" data-bs-toggle="modal" data-bs-target="#editVacationModal">
-        Edit Vacation
-    </button>
+    <!-- Action Buttons -->
+    <div class="mb-3">
+        <a href="{% url 'vacation_itinerary' vacation.pk %}" class="btn btn-success">
+            <i class="bi bi-calendar-week"></i> View Itinerary
+        </a>
+        
+        <!-- Trigger the Edit Vacation Modal -->
+        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editVacationModal">
+            Edit Vacation
+        </button>
 
-    <!-- Delete Vacation Button -->
-    <button class="btn btn-danger mb-3" data-bs-toggle="modal" data-bs-target="#confirmDeleteVacationModal">
-        Delete Vacation
-    </button>
+        <!-- Delete Vacation Button -->
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteVacationModal">
+            Delete Vacation
+        </button>
+    </div>
 
     <!-- Confirmation Modal -->
     <div class="modal fade" id="confirmDeleteVacationModal" tabindex="-1"
@@ -159,7 +166,7 @@
                 <div>
                     <strong>{{ activity.name }}</strong><br>
                     {{ activity.date }} <br>
-                    {{ activity.time }}<br>
+                    {{ activity.start_time }}<br>
                     <strong>Suggested by:</strong><p>{{ activity.suggested_by.username }}</p>
                     Votes: <strong>{{ activity.votes }}</strong> <br>
                     {% if activity.actual_cost %}
