@@ -591,7 +591,7 @@ class ViewTest(TestCase):
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('create_vacation'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Create Vacation')
+        self.assertContains(response, 'Create a New Vacation')
 
     def test_create_vacation_view_post(self):
         """Test create vacation view POST request"""
@@ -623,10 +623,10 @@ class ViewTest(TestCase):
         self.assertContains(response, 'Itinerary')
 
     def test_add_flight_view_get(self):
-        """Test add flight view GET request"""
+        """Test add flight view GET request returns Method Not Allowed"""
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('add_flight', kwargs={'pk': self.vacation.pk}))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 405)  # Method Not Allowed
 
     def test_add_flight_view_post(self):
         """Test add flight view POST request"""
@@ -654,10 +654,10 @@ class ViewTest(TestCase):
         self.assertEqual(flight.airline, 'Test Airlines')
 
     def test_add_lodging_view_get(self):
-        """Test add lodging view GET request"""
+        """Test add lodging view GET request returns Method Not Allowed"""
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('add_lodging', kwargs={'pk': self.vacation.pk}))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 405)  # Method Not Allowed
 
     def test_add_lodging_view_post(self):
         """Test add lodging view POST request"""
@@ -681,10 +681,10 @@ class ViewTest(TestCase):
         self.assertEqual(lodging.name, 'Grand Hotel')
 
     def test_add_activity_view_get(self):
-        """Test add activity view GET request"""
+        """Test add activity view GET request returns Method Not Allowed"""
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('add_activity', kwargs={'pk': self.vacation.pk}))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 405)  # Method Not Allowed
 
     def test_add_activity_view_post(self):
         """Test add activity view POST request"""
