@@ -525,10 +525,9 @@ class ViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         
         # Check that section icons are present
-        self.assertContains(response, 'bi bi-airplane-fill')  # Flights icon
-        self.assertContains(response, 'bi bi-car-fill')  # Transportation icon
-        self.assertContains(response, 'bi bi-calendar-event-fill')  # Activities icon
-        self.assertContains(response, 'bi bi-house-door')  # Stays icon (existing)
+        self.assertContains(response, 'bi bi-airplane')  # Transportation icon
+        self.assertContains(response, 'bi bi-star')  # Activities icon
+        self.assertContains(response, 'bi bi-house-door')  # Stays icon
 
     def test_vacation_detail_view_unauthorized(self):
         """Test vacation detail view for unauthorized user"""
@@ -1018,22 +1017,6 @@ class DataMigrationTest(TestCase):
             end_date=date.today() + timedelta(days=3),
             trip_type='booked'
         )
-        
-        # Create a flight (legacy)
-        flight = Flight.objects.create(
-            vacation=vacation,
-            airline='Test Airlines',
-            confirmation='FL123',
-            departure_airport='NYC',
-            arrival_airport='LAX',
-            departure_time=timezone.make_aware(datetime(2024, 6, 15, 10, 0)),
-            arrival_time=timezone.make_aware(datetime(2024, 6, 15, 14, 0)),
-            actual_cost=500.00
-        )
-        
-        # Check that we can access the flight data
-        self.assertEqual(flight.airline, 'Test Airlines')
-        self.assertEqual(flight.departure_airport, 'NYC')
         
         # Create a transportation entry
         transportation = Transportation.objects.create(
