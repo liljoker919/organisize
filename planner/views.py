@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import inlineformset_factory
-from .models import VacationPlan, Flight, Lodging, Activity, Group
+from .models import VacationPlan, Flight, Lodging, Activity, Group, Transportation
 from .forms import (
     VacationPlanForm,
     FlightForm,
+    TransportationForm,
     LodgingForm,
     ActivityForm,
     ShareVacationForm,
@@ -12,7 +13,7 @@ from .forms import (
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
-from .models import Flight, Lodging, Activity
+from .models import Flight, Lodging, Activity, Transportation
 from django.template.loader import render_to_string
 from django.template.exceptions import TemplateDoesNotExist
 from django.http import JsonResponse, Http404
@@ -148,7 +149,8 @@ def vacation_detail(request, pk):
 
     # Initialize forms for static modals
     activity_form = ActivityForm()
-    flight_form = FlightForm()
+    flight_form = FlightForm()  # Keep for backward compatibility
+    transportation_form = TransportationForm()
     edit_vacation_form = VacationPlanForm(instance=vacation)
 
     # Initialize forms for dynamic modals (e.g., editing existing objects)
@@ -159,6 +161,9 @@ def vacation_detail(request, pk):
 
     flights = vacation.flights.all()
     flight_forms = {flight.id: FlightForm(instance=flight) for flight in flights}
+    
+    transportations = vacation.transportations.all()
+    transportation_forms = {transportation.id: TransportationForm(instance=transportation) for transportation in transportations}
 
     lodgings = vacation.lodgings.all()
     context = {
@@ -166,11 +171,14 @@ def vacation_detail(request, pk):
         "group": vacation.group,  # Add group to context
         "activity_form": activity_form,
         "flight_form": flight_form,
+        "transportation_form": transportation_form,
         "edit_vacation_form": edit_vacation_form,
         "activity_forms": activity_forms,
         "flight_forms": flight_forms,
+        "transportation_forms": transportation_forms,
         "activities": activities,
         "flights": flights,
+        "transportations": transportations,
         "lodgings": lodgings,
         "shared_users": vacation.shared_with.all(),
     }
@@ -205,6 +213,7 @@ def vacation_itinerary(request, pk):
 
     # Get all vacation events
     flights = vacation.flights.all()
+    transportations = vacation.transportations.all()
     lodgings = vacation.lodgings.all()
     activities = vacation.activities.all()
 
@@ -215,7 +224,7 @@ def vacation_itinerary(request, pk):
     # Create a dictionary to organize events by date
     itinerary_by_date = defaultdict(list)
 
-    # Add flight events
+    # Add flight events (legacy)
     for flight in flights:
         # Departure event
         departure_date = flight.departure_time.date()
@@ -243,6 +252,38 @@ def vacation_itinerary(request, pk):
                     "details": f"{flight.departure_airport} → {flight.arrival_airport}",
                     "confirmation": flight.confirmation,
                     "cost": flight.actual_cost,
+                    "notes": None,
+                }
+            )
+
+    # Add transportation events
+    for transportation in transportations:
+        # Departure event
+        departure_date = transportation.departure_time.date()
+        if start_date <= departure_date <= end_date:
+            itinerary_by_date[departure_date].append(
+                {
+                    "type": f"{transportation.transportation_type}_departure",
+                    "time": transportation.departure_time.time(),
+                    "title": f"{transportation.get_transportation_type_display()} Departure - {transportation.provider}",
+                    "details": f"{transportation.departure_location} → {transportation.arrival_location}",
+                    "confirmation": transportation.confirmation,
+                    "cost": transportation.actual_cost,
+                    "notes": None,
+                }
+            )
+
+        # Arrival event
+        arrival_date = transportation.arrival_time.date()
+        if start_date <= arrival_date <= end_date:
+            itinerary_by_date[arrival_date].append(
+                {
+                    "type": f"{transportation.transportation_type}_arrival",
+                    "time": transportation.arrival_time.time(),
+                    "title": f"{transportation.get_transportation_type_display()} Arrival - {transportation.provider}",
+                    "details": f"{transportation.departure_location} → {transportation.arrival_location}",
+                    "confirmation": transportation.confirmation,
+                    "cost": transportation.actual_cost,
                     "notes": None,
                 }
             )
@@ -386,6 +427,82 @@ def delete_flight(request, pk):
 
 
 @require_http_methods(["POST"])
+def add_transportation(request, pk):
+    vacation = get_object_or_404(VacationPlan, pk=pk)
+    form = TransportationForm(request.POST)
+
+    if form.is_valid():
+        transportation = form.save(commit=False)
+        transportation.vacation = vacation
+        transportation.save()
+        return redirect("vacation_detail", pk=pk)
+
+    # If invalid, re-render the whole page with the modal visible and errors
+    lodging_form = LodgingForm()
+    activity_form = ActivityForm()
+    flight_form = FlightForm()
+
+    flights = Flight.objects.filter(vacation=vacation)
+    transportations = Transportation.objects.filter(vacation=vacation)
+    lodgings = Lodging.objects.filter(vacation=vacation)
+    activities = Activity.objects.filter(vacation=vacation)
+
+    return render(
+        request,
+        "planner/vacation_detail.html",
+        {
+            "vacation": vacation,
+            "transportation_form": form,
+            "flight_form": flight_form,
+            "lodging_form": lodging_form,
+            "activity_form": activity_form,
+            "flights": flights,
+            "transportations": transportations,
+            "lodgings": lodgings,
+            "activities": activities,
+            "show_transportation_modal": True,
+        },
+    )
+
+
+@login_required
+def edit_transportation(request, pk):
+    transportation = get_object_or_404(Transportation, pk=pk)
+    vacation = transportation.vacation
+    if (
+        vacation.owner != request.user
+        and request.user not in vacation.shared_with.all()
+    ):
+        return redirect("vacation_detail", pk=vacation.pk)
+
+    if request.method == "POST":
+        form = TransportationForm(request.POST, instance=transportation)
+        if form.is_valid():
+            form.save()
+            return redirect("vacation_detail", pk=vacation.pk)
+    else:
+        form = TransportationForm(instance=transportation)
+
+    return render(request, "planner/edit_transportation.html", {"form": form, "transportation": transportation})
+
+
+@login_required
+@require_http_methods(["POST"])
+def delete_transportation(request, pk):
+    transportation = get_object_or_404(Transportation, pk=pk)
+    vacation_pk = transportation.vacation.pk
+    if (
+        transportation.vacation.owner == request.user
+        or request.user in transportation.vacation.shared_with.all()
+    ):
+        transportation.delete()
+        messages.success(request, "Transportation deleted successfully.")
+    else:
+        messages.error(request, "You do not have permission to delete this transportation.")
+    return redirect("vacation_detail", pk=vacation_pk)
+
+
+@require_http_methods(["POST"])
 def add_lodging(request, pk):
     vacation = get_object_or_404(VacationPlan, pk=pk)
     form = LodgingForm(request.POST)
@@ -397,9 +514,11 @@ def add_lodging(request, pk):
         return redirect("vacation_detail", pk=pk)
 
     flight_form = FlightForm()
+    transportation_form = TransportationForm()
     activity_form = ActivityForm()
 
     flights = Flight.objects.filter(vacation=vacation)
+    transportations = Transportation.objects.filter(vacation=vacation)
     lodgings = Lodging.objects.filter(vacation=vacation)
     activities = Activity.objects.filter(vacation=vacation)
 
@@ -409,9 +528,11 @@ def add_lodging(request, pk):
         {
             "vacation": vacation,
             "flight_form": flight_form,
+            "transportation_form": transportation_form,
             "lodging_form": form,
             "activity_form": activity_form,
             "flights": flights,
+            "transportations": transportations,
             "lodgings": lodgings,
             "activities": activities,
             "show_lodging_modal": True,

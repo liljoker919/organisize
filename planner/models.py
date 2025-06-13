@@ -46,6 +46,37 @@ class VacationPlan(models.Model):
         ]
 
 
+class Transportation(models.Model):
+    TRANSPORTATION_TYPE_CHOICES = [
+        ('flight', 'Flight'),
+        ('train', 'Train'),
+        ('bus', 'Bus'),
+        ('ferry', 'Ferry'),
+        ('car', 'Car'),
+        ('other', 'Other'),
+    ]
+    
+    vacation = models.ForeignKey(
+        VacationPlan, on_delete=models.CASCADE, related_name="transportations"
+    )
+    transportation_type = models.CharField(
+        max_length=20, choices=TRANSPORTATION_TYPE_CHOICES, default='flight'
+    )
+    provider = models.CharField(max_length=100)  # airline, bus company, train operator, etc.
+    confirmation = models.CharField(max_length=100)
+    departure_location = models.CharField(max_length=100)  # airport, station, terminal, etc.
+    arrival_location = models.CharField(max_length=100)    # airport, station, terminal, etc.
+    departure_time = models.DateTimeField()
+    arrival_time = models.DateTimeField()
+    actual_cost = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    
+    def __str__(self):
+        return f"{self.get_transportation_type_display()}: {self.departure_location} → {self.arrival_location}"
+
+
+# Backward compatibility alias - keep Flight model temporarily for migration
 class Flight(models.Model):
     vacation = models.ForeignKey(
         VacationPlan, on_delete=models.CASCADE, related_name="flights"
