@@ -10,9 +10,7 @@ __pycache__/
 .env
 .venv/
 venv/
-
-
-
+new_venv/
 venv_fresh/
 
 temp_venv/

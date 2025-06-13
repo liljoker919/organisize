@@ -6,6 +6,7 @@ from planner import views as planner_views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", planner_views.home, name="home"),  # 👈 root route
+    path("signup/", planner_views.signup, name="signup"),  # 👈 signup route
     path("vacations/", include("planner.urls")),
     path("accounts/", include("django.contrib.auth.urls")),
 ]
