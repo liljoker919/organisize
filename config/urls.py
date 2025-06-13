@@ -8,4 +8,5 @@ urlpatterns = [
     path("", planner_views.home, name="home"),  # 👈 root route
     path("vacations/", include("planner.urls")),
     path("accounts/", include("django.contrib.auth.urls")),
+    path("accounts/register/", planner_views.register, name="register"),
 ]
