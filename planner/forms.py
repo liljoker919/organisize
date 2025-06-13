@@ -1,7 +1,7 @@
 from django import forms
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from .models import VacationPlan, Flight, Lodging, Activity, Group, Transportation
+from .models import VacationPlan, Lodging, Activity, Group, Transportation
 from django.contrib.auth.models import User
 
 
@@ -144,55 +144,6 @@ class TransportationForm(forms.ModelForm):
         self.fields['arrival_location'].widget.attrs['data-ferry-placeholder'] = 'Arrival port'
         self.fields['arrival_location'].widget.attrs['data-car-placeholder'] = 'Drop-off location'
         self.fields['arrival_location'].widget.attrs['data-other-placeholder'] = 'Arrival location'
-
-
-class FlightForm(forms.ModelForm):
-    class Meta:
-        model = Flight
-        fields = [
-            "airline",
-            "confirmation",
-            "departure_airport",
-            "arrival_airport",
-            "departure_time",
-            "arrival_time",
-            "actual_cost",
-        ]
-        widgets = {
-            "airline": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Airline"}
-            ),
-            "confirmation": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Confirmation #"}
-            ),
-            "departure_airport": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Departure airport"}
-            ),
-            "arrival_airport": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Arrival airport"}
-            ),
-            "departure_time": forms.DateTimeInput(
-                attrs={
-                    "type": "datetime-local",
-                    "class": "form-control",
-                    "placeholder": "Departure time",
-                }
-            ),
-            "arrival_time": forms.DateTimeInput(
-                attrs={
-                    "type": "datetime-local",
-                    "class": "form-control",
-                    "placeholder": "Arrival time",
-                }
-            ),
-            "actual_cost": forms.NumberInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Actual cost",
-                    "step": "0.01",
-                }
-            ),
-        }
 
 
 class LodgingForm(forms.ModelForm):

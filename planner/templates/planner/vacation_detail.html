@@ -80,43 +80,7 @@
     </p>
     {% endif %}
 
-    <!-- Flights Section -->
-    <h4 class="mt-4">Flights</h4>
-    <ul class="list-group mb-3">
-        {% for flight in flights %}
-        <li class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>{{ flight.airline }}</strong><br>
-                    {{ flight.departure_airport }} → {{ flight.arrival_airport }}<br>
-                    {{ flight.departure_time }} - {{ flight.arrival_time }}<br>
-                    Confirmation: {{ flight.confirmation }}<br>
-                    {% if flight.actual_cost %}
-                    <small><strong>Cost:</strong> ${{ flight.actual_cost }}</small>
-                    {% endif %}
-                </div>
-                <div>
-                    <!-- Trigger the edit modal -->
-                    <button class="btn btn-primary" data-bs-toggle="modal"
-                        data-bs-target="#editFlightModal-{{ flight.id }}">
-                        Edit Flight
-                    </button>
-                    <!-- Delete button -->
-                    <form method="post" action="{% url 'delete_flight' flight.id %}" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                    </form>
-                </div>
-            </div>
-        </li>
 
-        <!-- Include the edit flight modal for this specific flight -->
-        {% include "planner/modals/edit_flight_modal.html" %}
-        {% endfor %}
-    </ul>
-    {% if vacation.trip_type == "booked" %}
-    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#flightModal">Add Flight</button>
-    {% endif %}
 
     <!-- Transportation Section -->
     <h4 class="mt-4">Transportation</h4>
@@ -279,7 +243,6 @@
 
 
     <!-- Include Modals -->
-    {% include "planner/modals/add_flight_modal.html" %}
     {% include "planner/modals/add_transportation_modal.html" %}
     {% include "planner/modals/add_activity_modal.html" %}
     {% include "planner/modals/invite_modal.html" %}

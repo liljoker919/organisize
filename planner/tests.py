@@ -4,8 +4,8 @@ from django.utils import timezone
 from datetime import timedelta, date, time
 from django.core.exceptions import ValidationError
 from django.urls import reverse
-from planner.models import Group, VacationPlan, Lodging, Flight, Transportation
-from planner.forms import GroupForm, LodgingForm, TransportationForm
+from planner.models import Group, VacationPlan, Lodging, Transportation, Activity
+from planner.forms import GroupForm, LodgingForm, TransportationForm, VacationPlanForm, ActivityForm
 
 
 
@@ -193,46 +193,6 @@ class LodgingModelTest(TestCase):
         self.assertIsNotNone(lodging.pk)
 
 
-class FlightModelTest(TestCase):
-    def setUp(self):
-        """Set up test data"""
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpass123'
-        )
-        self.vacation = VacationPlan.objects.create(
-            owner=self.user,
-            destination='Test Destination',
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=7),
-            trip_type='planned'
-        )
-
-    def test_flight_creation(self):
-        """Test creating a flight"""
-        departure_time = timezone.now() + timedelta(days=1)
-        arrival_time = departure_time + timedelta(hours=3)
-        
-        flight = Flight.objects.create(
-            vacation=self.vacation,
-            airline='Test Airlines',
-            confirmation='CONF123',
-            departure_airport='LAX',
-            arrival_airport='JFK',
-            departure_time=departure_time,
-            arrival_time=arrival_time,
-            actual_cost=299.99
-        )
-        
-        self.assertEqual(flight.vacation, self.vacation)
-        self.assertEqual(flight.airline, 'Test Airlines')
-        self.assertEqual(flight.confirmation, 'CONF123')
-        self.assertEqual(flight.departure_airport, 'LAX')
-        self.assertEqual(flight.arrival_airport, 'JFK')
-        self.assertEqual(flight.actual_cost, 299.99)
-
-
 class ActivityModelTest(TestCase):
     def setUp(self):
         """Set up test data"""
@@ -412,36 +372,6 @@ class VacationPlanFormTest(TestCase):
         self.assertIn('destination', form.errors)
 
 
-class FlightFormTest(TestCase):
-    def test_flight_form_valid_data(self):
-        """Test FlightForm with valid data"""
-        departure_time = timezone.now() + timedelta(days=1)
-        arrival_time = departure_time + timedelta(hours=3)
-        
-        form_data = {
-            'airline': 'Test Airlines',
-            'confirmation': 'CONF123',
-            'departure_airport': 'LAX',
-            'arrival_airport': 'JFK',
-            'departure_time': departure_time.strftime('%Y-%m-%dT%H:%M'),
-            'arrival_time': arrival_time.strftime('%Y-%m-%dT%H:%M'),
-            'actual_cost': 299.99
-        }
-        
-        form = FlightForm(data=form_data)
-        self.assertTrue(form.is_valid())
-
-    def test_flight_form_required_fields(self):
-        """Test FlightForm required fields"""
-        form = FlightForm(data={})
-        self.assertFalse(form.is_valid())
-        
-        # Check that required fields are present in errors
-        required_fields = ['airline', 'confirmation', 'departure_airport', 'arrival_airport']
-        for field in required_fields:
-            self.assertIn(field, form.errors)
-
-
 class ActivityFormTest(TestCase):
     def test_activity_form_valid_data(self):
         """Test ActivityForm with valid data"""
@@ -515,11 +445,6 @@ class URLRoutingTest(TestCase):
         """Test vacation itinerary URL resolution"""
         url = reverse('vacation_itinerary', kwargs={'pk': 1})
         self.assertEqual(url, '/vacations/1/itinerary/')
-        
-    def test_add_flight_url(self):
-        """Test add flight URL resolution"""
-        url = reverse('add_flight', kwargs={'pk': 1})
-        self.assertEqual(url, '/vacations/1/add-flight/')
         
     def test_add_lodging_url(self):
         """Test add lodging URL resolution"""
@@ -624,37 +549,6 @@ class ViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Itinerary')
 
-    def test_add_flight_view_get(self):
-        """Test add flight view GET request returns Method Not Allowed"""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('add_flight', kwargs={'pk': self.vacation.pk}))
-        self.assertEqual(response.status_code, 405)  # Method Not Allowed
-
-    def test_add_flight_view_post(self):
-        """Test add flight view POST request"""
-        self.client.login(username='testuser', password='testpass123')
-        
-        departure_time = timezone.now() + timedelta(days=2)
-        arrival_time = departure_time + timedelta(hours=3)
-        
-        form_data = {
-            'airline': 'Test Airlines',
-            'confirmation': 'CONF123',
-            'departure_airport': 'LAX',
-            'arrival_airport': 'JFK',
-            'departure_time': departure_time.strftime('%Y-%m-%dT%H:%M'),
-            'arrival_time': arrival_time.strftime('%Y-%m-%dT%H:%M'),
-            'actual_cost': '299.99'
-        }
-        
-        response = self.client.post(reverse('add_flight', kwargs={'pk': self.vacation.pk}), data=form_data)
-        self.assertEqual(response.status_code, 302)  # Redirect after successful creation
-        
-        # Verify flight was created
-        flight = Flight.objects.filter(vacation=self.vacation).first()
-        self.assertIsNotNone(flight)
-        self.assertEqual(flight.airline, 'Test Airlines')
-
     def test_add_lodging_view_get(self):
         """Test add lodging view GET request returns Method Not Allowed"""
         self.client.login(username='testuser', password='testpass123')
@@ -742,13 +636,14 @@ class VacationItineraryTestWithEvents(TestCase):
             estimated_cost=1000.00
         )
         
-        # Create flight
-        self.flight = Flight.objects.create(
+        # Create transportation
+        self.transportation = Transportation.objects.create(
             vacation=self.vacation,
-            airline='Test Airlines',
+            transportation_type='flight',
+            provider='Test Airlines',
             confirmation='ABC123',
-            departure_airport='NYC',
-            arrival_airport='LAX',
+            departure_location='NYC',
+            arrival_location='LAX',
             departure_time=timezone.datetime(2024, 6, 15, 10, 30),
             arrival_time=timezone.datetime(2024, 6, 15, 14, 30),
             actual_cost=500.00
@@ -836,14 +731,14 @@ class VacationItineraryTestWithEvents(TestCase):
         
         itinerary = response.context['itinerary']
         
-        # June 15 should have flight departure, arrival, and check-in
+        # June 15 should have transportation departure, arrival, and check-in
         june_15_events = itinerary[0]['events']
         self.assertEqual(len(june_15_events), 3)
         
         # Events should be sorted by time
         event_types = [event['type'] for event in june_15_events]
-        self.assertIn('flight_departure', event_types)
-        self.assertIn('flight_arrival', event_types)
+        self.assertIn('flight_departure', event_types)  # transportation type is 'flight'
+        self.assertIn('flight_arrival', event_types)    # transportation type is 'flight'
         self.assertIn('lodging_checkin', event_types)
         
         # June 16 should have the activity
@@ -1074,51 +969,4 @@ class TransportationViewTest(TestCase):
         self.assertContains(response, 'BUS456')
 
 
-class DataMigrationTest(TestCase):
-    def test_transportation_migration_compatibility(self):
-        """Test that data migration works correctly"""
-        # Create a vacation
-        user = User.objects.create_user(username='testuser', password='test')
-        vacation = VacationPlan.objects.create(
-            owner=user,
-            destination='Test',
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=3),
-            trip_type='booked'
-        )
-        
-        # Create a flight (legacy)
-        flight = Flight.objects.create(
-            vacation=vacation,
-            airline='Test Airlines',
-            confirmation='FL123',
-            departure_airport='NYC',
-            arrival_airport='LAX',
-            departure_time=timezone.datetime(2024, 6, 15, 10, 0),
-            arrival_time=timezone.datetime(2024, 6, 15, 14, 0),
-            actual_cost=500.00
-        )
-        
-        # Check that we can access the flight data
-        self.assertEqual(flight.airline, 'Test Airlines')
-        self.assertEqual(flight.departure_airport, 'NYC')
-        
-        # Create a transportation entry
-        transportation = Transportation.objects.create(
-            vacation=vacation,
-            transportation_type='flight',
-            provider='Test Airlines',
-            confirmation='TR123',
-            departure_location='NYC',
-            arrival_location='LAX',
-            departure_time=timezone.datetime(2024, 6, 15, 10, 0),
-            arrival_time=timezone.datetime(2024, 6, 15, 14, 0),
-            actual_cost=500.00
-        )
-        
-        # Check that transportation data works correctly
-        self.assertEqual(transportation.transportation_type, 'flight')
-        self.assertEqual(transportation.provider, 'Test Airlines')
-        self.assertEqual(transportation.departure_location, 'NYC')
-        self.assertEqual(str(transportation), 'Flight: NYC → LAX')
 
