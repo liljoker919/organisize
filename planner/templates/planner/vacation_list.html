@@ -1,17 +1,68 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Vacation Plans</h1>
-<ul>
-    {% for vacation in vacations %}
-    <li>
-        <a href="{% url 'vacation_detail' vacation.id %}">
-            <strong>{{ vacation.title }}</strong> – {{ vacation.destination }}
-            ({{ vacation.start_date|date:"F j, Y" }} to {{ vacation.end_date|date:"F j, Y" }})
-        </a>
-    </li>
-    {% empty %}
-    <li>No vacation plans found.</li>
-    {% endfor %}
-</ul>
-<p><a class="btn btn-primary" href="{% url 'create_vacation' %}">Add a New Vacation</a></p>
+<div class="container mt-4">
+    <h1 class="mb-4">Vacation Plans</h1>
+    
+    <div class="row">
+        {% for vacation in vacations %}
+        <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">
+                        <i class="bi bi-geo-alt text-primary me-2"></i>{{ vacation.destination }}
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar-range me-1"></i>
+                            {{ vacation.start_date|date:"M j, Y" }} - {{ vacation.end_date|date:"M j, Y" }}
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {% if vacation.trip_type == "planned" %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-clock me-1"></i>Planned
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i>Booked
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if vacation.estimated_cost %}
+                    <div class="mb-3">
+                        <small class="text-muted">Estimated Cost:</small>
+                        <div class="fw-bold text-primary">${{ vacation.estimated_cost|floatformat:0 }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-auto">
+                        <a href="{% url 'vacation_detail' vacation.id %}" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-eye me-1"></i>View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-suitcase display-1 text-muted mb-3"></i>
+                <h4 class="text-muted">No vacation plans found</h4>
+                <p class="text-muted">Start planning your next adventure!</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a class="btn btn-primary btn-lg" href="{% url 'create_vacation' %}">
+                <i class="bi bi-plus-circle me-2"></i>Add a New Vacation
+            </a>
+        </div>
+    </div>
+</div>
 {% endblock %}
