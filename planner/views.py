@@ -28,6 +28,8 @@ from django.utils.crypto import get_random_string
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_POST
+from datetime import datetime, date, timedelta
+from collections import defaultdict
 
 
 def home(request):
@@ -169,9 +171,122 @@ def vacation_detail(request, pk):
         "lodging_forms": lodging_forms,
         "activity_forms": activity_forms,
         "flight_forms": flight_forms,
-        "activities" : activities
+        "activities": activities,
+        "flights": flights,
+        "lodgings": lodgings,
+        "shared_users": vacation.shared_with.all()
     }
     return render(request, "planner/vacation_detail.html", context)
+
+
+@login_required
+def vacation_itinerary(request, pk):
+    """Generate a day-by-day itinerary for a vacation"""
+    vacation = get_object_or_404(
+        VacationPlan, Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))
+    )
+    
+    # Get all vacation events
+    flights = vacation.flights.all()
+    lodgings = vacation.lodgings.all()
+    activities = vacation.activities.all()
+    
+    # Generate date range for the vacation
+    start_date = vacation.start_date
+    end_date = vacation.end_date
+    
+    # Create a dictionary to organize events by date
+    itinerary_by_date = defaultdict(list)
+    
+    # Add flight events
+    for flight in flights:
+        # Departure event
+        departure_date = flight.departure_time.date()
+        if start_date <= departure_date <= end_date:
+            itinerary_by_date[departure_date].append({
+                'type': 'flight_departure',
+                'time': flight.departure_time.time(),
+                'title': f'Flight Departure - {flight.airline}',
+                'details': f'{flight.departure_airport} → {flight.arrival_airport}',
+                'confirmation': flight.confirmation,
+                'cost': flight.actual_cost,
+                'notes': None
+            })
+        
+        # Arrival event
+        arrival_date = flight.arrival_time.date()
+        if start_date <= arrival_date <= end_date:
+            itinerary_by_date[arrival_date].append({
+                'type': 'flight_arrival',
+                'time': flight.arrival_time.time(),
+                'title': f'Flight Arrival - {flight.airline}',
+                'details': f'{flight.departure_airport} → {flight.arrival_airport}',
+                'confirmation': flight.confirmation,
+                'cost': flight.actual_cost,
+                'notes': None
+            })
+    
+    # Add lodging events
+    for lodging in lodgings:
+        # Check-in event
+        if start_date <= lodging.check_in <= end_date:
+            itinerary_by_date[lodging.check_in].append({
+                'type': 'lodging_checkin',
+                'time': None,  # No specific time for lodging
+                'title': f'Check-in - {lodging.name}',
+                'details': f'Confirmation: {lodging.confirmation}',
+                'confirmation': lodging.confirmation,
+                'cost': lodging.actual_cost,
+                'notes': None
+            })
+        
+        # Check-out event
+        if start_date <= lodging.check_out <= end_date:
+            itinerary_by_date[lodging.check_out].append({
+                'type': 'lodging_checkout',
+                'time': None,  # No specific time for lodging
+                'title': f'Check-out - {lodging.name}',
+                'details': f'Confirmation: {lodging.confirmation}',
+                'confirmation': lodging.confirmation,
+                'cost': lodging.actual_cost,
+                'notes': None
+            })
+    
+    # Add activity events
+    for activity in activities:
+        if start_date <= activity.date <= end_date:
+            itinerary_by_date[activity.date].append({
+                'type': 'activity',
+                'time': activity.start_time,
+                'title': activity.name,
+                'details': f'Suggested by: {activity.suggested_by.username}',
+                'confirmation': None,
+                'cost': activity.actual_cost,
+                'notes': activity.notes
+            })
+    
+    # Sort events within each day by time (events without time go last)
+    for date_events in itinerary_by_date.values():
+        date_events.sort(key=lambda x: x['time'] if x['time'] else datetime.max.time())
+    
+    # Create sorted list of dates and their events
+    sorted_itinerary = []
+    current_date = start_date
+    while current_date <= end_date:
+        events = itinerary_by_date.get(current_date, [])
+        sorted_itinerary.append({
+            'date': current_date,
+            'events': events
+        })
+        current_date += timedelta(days=1)
+    
+    context = {
+        'vacation': vacation,
+        'itinerary': sorted_itinerary,
+        'total_days': (end_date - start_date).days + 1
+    }
+    
+    return render(request, "planner/vacation_itinerary.html", context)
 
 
 @require_http_methods(["POST"])
