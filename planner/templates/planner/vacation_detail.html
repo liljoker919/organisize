@@ -112,38 +112,61 @@
     {% endif %}
 
 
-    <!-- Lodging Section -->
-    <h4>Lodging</h4>
-    <ul class="list-group mb-3">
-        {% for lodging in lodgings %}
-        <li class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>{{ lodging.name }}</strong><br>
-                    {{ lodging.address }}<br>
-                    Check-in: {{ lodging.check_in_date }}<br>
-                    Check-out: {{ lodging.check_out_date }}<br>
-                    {% if lodging.actual_cost %}
-                    <small><strong>Cost:</strong> ${{ lodging.actual_cost }}</small>
-                    {% endif %}
+    <!-- Stays Section -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">
+            <i class="bi bi-house-door text-primary me-2"></i>
+            Stays
+        </h4>
+        <a href="{% url 'vacation_stays' vacation.pk %}" class="btn btn-outline-primary">
+            <i class="bi bi-eye me-1"></i>
+            View All Stays
+        </a>
+    </div>
+    
+    {% if vacation.lodgings.all %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row">
+                {% for lodging in vacation.lodgings.all|slice:":3" %}
+                <div class="col-md-4 mb-2">
+                    <div class="d-flex align-items-center">
+                        {% if lodging.lodging_type == 'hotel' %}
+                            <i class="bi bi-building-fill-check text-primary me-2"></i>
+                        {% elif lodging.lodging_type == 'resort' %}
+                            <i class="bi bi-tree-fill text-success me-2"></i>
+                        {% elif lodging.lodging_type == 'house' %}
+                            <i class="bi bi-house-fill text-success me-2"></i>
+                        {% else %}
+                            <i class="bi bi-geo-alt-fill text-muted me-2"></i>
+                        {% endif %}
+                        <div>
+                            <small class="fw-bold">{{ lodging.name }}</small><br>
+                            <small class="text-muted">{{ lodging.check_in }} - {{ lodging.check_out }}</small>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <!-- Trigger the modal for this specific lodging -->
-                    <button class="btn btn-primary" data-bs-toggle="modal"
-                        data-bs-target="#editLodgingModal-{{ lodging.id }}">
-                        Edit Lodging
-                    </button>
-                    <a href="{% url 'delete_lodging' lodging.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
-                </div>
+                {% endfor %}
             </div>
-        </li>
-
-        <!-- Include the edit lodging modal for this specific lodging -->
-        {% include "planner/modals/edit_lodging_modal.html" %}
-        {% endfor %}
-    </ul>
-    {% if vacation.trip_type == "booked" %}
-    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#lodgingModal">Add Lodging</button>
+            {% if vacation.lodgings.count > 3 %}
+            <div class="text-center mt-2">
+                <small class="text-muted">and {{ vacation.lodgings.count|add:"-3" }} more...</small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card mb-3">
+        <div class="card-body text-center text-muted">
+            <i class="bi bi-house-door mb-2 display-6"></i>
+            <p class="mb-0">No accommodations added yet</p>
+            {% if vacation.trip_type == "booked" %}
+            <a href="{% url 'vacation_stays' vacation.pk %}" class="btn btn-sm btn-outline-primary mt-2">
+                Add Your First Stay
+            </a>
+            {% endif %}
+        </div>
+    </div>
     {% endif %}
 
 
@@ -212,7 +235,6 @@
 
     <!-- Include Modals -->
     {% include "planner/modals/add_flight_modal.html" %}
-    {% include "planner/modals/add_lodging_modal.html" %}
     {% include "planner/modals/add_activity_modal.html" %}
     {% include "planner/modals/invite_modal.html" %}
     {% include "planner/modals/edit_vacation_modal.html" %}

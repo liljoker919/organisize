@@ -1,10 +1,11 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, date
 from django.core.exceptions import ValidationError
-from planner.models import Group
-from planner.forms import GroupForm
+from django.urls import reverse
+from planner.models import Group, VacationPlan, Lodging
+from planner.forms import GroupForm, LodgingForm
 
 
 class GroupModelTest(TestCase):
@@ -137,3 +138,111 @@ class GroupFormTest(TestCase):
         }
         form = GroupForm(data=form_data)
         self.assertTrue(form.is_valid())
+
+
+class LodgingModelTest(TestCase):
+    def setUp(self):
+        """Set up test data"""
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.vacation = VacationPlan.objects.create(
+            owner=self.user,
+            destination='Test Destination',
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=7),
+            trip_type='booked'
+        )
+
+    def test_lodging_with_type(self):
+        """Test creating lodging with lodging_type field"""
+        lodging = Lodging.objects.create(
+            vacation=self.vacation,
+            confirmation='TEST123',
+            name='Test Hotel',
+            lodging_type='hotel',
+            check_in=date.today(),
+            check_out=date.today() + timedelta(days=3)
+        )
+        
+        self.assertEqual(lodging.lodging_type, 'hotel')
+        self.assertEqual(lodging.get_lodging_type_display(), 'Hotel')
+
+    def test_lodging_form_includes_type(self):
+        """Test that LodgingForm includes lodging_type field"""
+        form = LodgingForm()
+        self.assertIn('lodging_type', form.fields)
+        
+        # Test form with lodging type
+        form_data = {
+            'confirmation': 'TEST123',
+            'name': 'Test Resort',
+            'lodging_type': 'resort',
+            'check_in': date.today(),
+            'check_out': date.today() + timedelta(days=3),
+        }
+        form = LodgingForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+
+class VacationStaysViewTest(TestCase):
+    def setUp(self):
+        """Set up test data"""
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.vacation = VacationPlan.objects.create(
+            owner=self.user,
+            destination='Test Destination',
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=7),
+            trip_type='booked'
+        )
+        self.lodging1 = Lodging.objects.create(
+            vacation=self.vacation,
+            confirmation='HOTEL123',
+            name='Test Hotel',
+            lodging_type='hotel',
+            check_in=date.today(),
+            check_out=date.today() + timedelta(days=3)
+        )
+        self.lodging2 = Lodging.objects.create(
+            vacation=self.vacation,
+            confirmation='RESORT456',
+            name='Test Resort',
+            lodging_type='resort',
+            check_in=date.today() + timedelta(days=4),
+            check_out=date.today() + timedelta(days=7)
+        )
+
+    def test_vacation_stays_view_access(self):
+        """Test that vacation stays view is accessible"""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vacation_stays', args=[self.vacation.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Stays - Test Destination')
+
+    def test_vacation_stays_timeline_order(self):
+        """Test that lodgings are ordered by check-in date in timeline"""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vacation_stays', args=[self.vacation.pk]))
+        
+        # Check that lodgings are in the context and ordered correctly
+        lodgings = response.context['lodgings']
+        self.assertEqual(len(lodgings), 2)
+        self.assertEqual(lodgings[0], self.lodging1)  # Earlier check-in first
+        self.assertEqual(lodgings[1], self.lodging2)
+
+    def test_vacation_stays_shows_lodging_types(self):
+        """Test that different lodging types are displayed"""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vacation_stays', args=[self.vacation.pk]))
+        
+        self.assertContains(response, 'Test Hotel')
+        self.assertContains(response, 'Test Resort')
+        self.assertContains(response, 'Hotel')  # Display name
+        self.assertContains(response, 'Resort')  # Display name

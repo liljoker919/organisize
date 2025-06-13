@@ -62,11 +62,27 @@ class Flight(models.Model):
 
 
 class Lodging(models.Model):
+    LODGING_TYPE_CHOICES = [
+        ('hotel', 'Hotel'),
+        ('motel', 'Motel'),
+        ('resort', 'Resort'),
+        ('hostel', 'Hostel'),
+        ('apartment', 'Apartment'),
+        ('house', 'House'),
+        ('cabin', 'Cabin'),
+        ('villa', 'Villa'),
+        ('campground', 'Campground'),
+        ('other', 'Other'),
+    ]
+    
     vacation = models.ForeignKey(
         VacationPlan, on_delete=models.CASCADE, related_name="lodgings"
     )
     confirmation = models.CharField(max_length=100)
     name = models.CharField(max_length=200)
+    lodging_type = models.CharField(
+        max_length=20, choices=LODGING_TYPE_CHOICES, default='hotel'
+    )
     check_in = models.DateField()
     check_out = models.DateField()
     actual_cost = models.DecimalField(
