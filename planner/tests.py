@@ -1,11 +1,11 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import timezone
-from datetime import timedelta, date
+from datetime import timedelta, date, time
 from django.core.exceptions import ValidationError
 from django.urls import reverse
-from planner.models import Group, VacationPlan, Lodging
-from planner.forms import GroupForm, LodgingForm
+from planner.models import Group, VacationPlan, Lodging, Activity, Flight
+from planner.forms import GroupForm, LodgingForm, ActivityForm, FlightForm, VacationPlanForm
 
 
 class GroupModelTest(TestCase):
@@ -148,7 +148,11 @@ class LodgingModelTest(TestCase):
 class VacationItineraryTest(TestCase):
     def setUp(self):
         """Set up test data for itinerary tests"""
-
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
 
         self.vacation = VacationPlan.objects.create(
             owner=self.user,
@@ -249,6 +253,15 @@ class VacationStaysViewTest(TestCase):
         self.assertContains(response, 'Hotel')  # Display name
         self.assertContains(response, 'Resort')  # Display name
 
+
+class VacationItineraryTestWithEvents(TestCase):
+    def setUp(self):
+        """Set up test data for itinerary tests with events"""
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
         
         # Create a vacation
         self.vacation = VacationPlan.objects.create(
@@ -267,8 +280,8 @@ class VacationStaysViewTest(TestCase):
             confirmation='ABC123',
             departure_airport='NYC',
             arrival_airport='LAX',
-            departure_time=timezone.datetime(2024, 6, 15, 10, 30),
-            arrival_time=timezone.datetime(2024, 6, 15, 14, 30),
+            departure_time=timezone.now().replace(year=2024, month=6, day=15, hour=10, minute=30, second=0, microsecond=0),
+            arrival_time=timezone.now().replace(year=2024, month=6, day=15, hour=14, minute=30, second=0, microsecond=0),
             actual_cost=500.00
         )
         
