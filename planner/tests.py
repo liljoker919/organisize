@@ -593,9 +593,9 @@ class ViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         
         # Check that section icons are present
-        self.assertContains(response, 'bi bi-airplane')  # Flights icon
-        self.assertContains(response, 'bi bi-car-front')  # Transportation icon
-        self.assertContains(response, 'bi bi-calendar-event')  # Activities icon
+        self.assertContains(response, 'bi bi-airplane-fill')  # Flights icon
+        self.assertContains(response, 'bi bi-car-fill')  # Transportation icon
+        self.assertContains(response, 'bi bi-calendar-event-fill')  # Activities icon
         self.assertContains(response, 'bi bi-house-door')  # Stays icon (existing)
 
     def test_vacation_detail_view_unauthorized(self):
