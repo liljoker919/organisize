@@ -9,12 +9,10 @@
             <form method="post" action="{% url 'invite_users' vacation.id %}">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <label for="inviteUsers" class="form-label">Add Users</label>
-                    <select name="shared_with" id="inviteUsers" class="form-control" multiple>
-                        {% for user in all_users %}
-                        <option value="{{ user.id }}">{{ user.username }}</option>
-                        {% endfor %}
-                    </select>
+                    <label for="inviteEmails" class="form-label">Invite Users by Email</label>
+                    <textarea name="invite_emails" id="inviteEmails" class="form-control" rows="3" 
+                              placeholder="Enter email addresses separated by commas (e.g., user1@example.com, user2@example.com)"></textarea>
+                    <small class="form-text text-muted">You can invite users who don't have accounts yet. They will receive an invitation to join.</small>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
