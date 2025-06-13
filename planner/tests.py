@@ -591,7 +591,7 @@ class ViewTest(TestCase):
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('create_vacation'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Create Vacation')
+        self.assertContains(response, 'Create a New Vacation')
 
     def test_create_vacation_view_post(self):
         """Test create vacation view POST request"""
@@ -623,10 +623,10 @@ class ViewTest(TestCase):
         self.assertContains(response, 'Itinerary')
 
     def test_add_flight_view_get(self):
-        """Test add flight view GET request"""
+        """Test add flight view GET request returns Method Not Allowed"""
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('add_flight', kwargs={'pk': self.vacation.pk}))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 405)  # Method Not Allowed
 
     def test_add_flight_view_post(self):
         """Test add flight view POST request"""
@@ -654,10 +654,10 @@ class ViewTest(TestCase):
         self.assertEqual(flight.airline, 'Test Airlines')
 
     def test_add_lodging_view_get(self):
-        """Test add lodging view GET request"""
+        """Test add lodging view GET request returns Method Not Allowed"""
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('add_lodging', kwargs={'pk': self.vacation.pk}))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 405)  # Method Not Allowed
 
     def test_add_lodging_view_post(self):
         """Test add lodging view POST request"""
@@ -681,10 +681,10 @@ class ViewTest(TestCase):
         self.assertEqual(lodging.name, 'Grand Hotel')
 
     def test_add_activity_view_get(self):
-        """Test add activity view GET request"""
+        """Test add activity view GET request returns Method Not Allowed"""
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('add_activity', kwargs={'pk': self.vacation.pk}))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 405)  # Method Not Allowed
 
     def test_add_activity_view_post(self):
         """Test add activity view POST request"""
@@ -777,28 +777,61 @@ class VacationStaysViewTest(TestCase):
             email='test@example.com',
             password='testpass123'
         )
+        
+        # Create vacation with specific dates for itinerary tests (June 15-18, 4 days)
         self.vacation = VacationPlan.objects.create(
             owner=self.user,
             destination='Test Destination',
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=7),
-            trip_type='booked'
+            start_date=date(2024, 6, 15),
+            end_date=date(2024, 6, 18),
+            trip_type='booked',
+            estimated_cost=1000.00
         )
-        self.lodging1 = Lodging.objects.create(
+        
+        # Create flight for itinerary tests
+        self.flight = Flight.objects.create(
             vacation=self.vacation,
-            confirmation='HOTEL123',
-            name='Test Hotel',
-            lodging_type='hotel',
-            check_in=date.today(),
-            check_out=date.today() + timedelta(days=3)
+            airline='Test Airlines',
+            confirmation='ABC123',
+            departure_airport='NYC',
+            arrival_airport='LAX',
+            departure_time=timezone.datetime(2024, 6, 15, 10, 30),
+            arrival_time=timezone.datetime(2024, 6, 15, 14, 30),
+            actual_cost=500.00
         )
+        
+        # Create lodging for itinerary tests
+        self.lodging = Lodging.objects.create(
+            vacation=self.vacation,
+            name='Test Hotel',
+            confirmation='DEF456',
+            lodging_type='hotel',
+            check_in=date(2024, 6, 15),
+            check_out=date(2024, 6, 18),
+            actual_cost=300.00
+        )
+        
+        # Create activity for itinerary tests
+        self.activity = Activity.objects.create(
+            vacation=self.vacation,
+            name='Test Activity',
+            date=date(2024, 6, 16),
+            start_time=time(14, 0),
+            suggested_by=self.user,
+            actual_cost=50.00,
+            notes='Fun activity to do'
+        )
+        
+        # Create additional lodging for vacation stays tests
+        self.lodging1 = self.lodging  # Use the main lodging as lodging1
         self.lodging2 = Lodging.objects.create(
             vacation=self.vacation,
             confirmation='RESORT456',
             name='Test Resort',
             lodging_type='resort',
-            check_in=date.today() + timedelta(days=4),
-            check_out=date.today() + timedelta(days=7)
+            check_in=date(2024, 6, 19),  # After the vacation ends, but for stays timeline test
+            check_out=date(2024, 6, 22),
+            actual_cost=400.00
         )
 
     def test_vacation_stays_view_access(self):
@@ -828,50 +861,6 @@ class VacationStaysViewTest(TestCase):
         self.assertContains(response, 'Test Resort')
         self.assertContains(response, 'Hotel')  # Display name
         self.assertContains(response, 'Resort')  # Display name
-
-        
-        # Create a vacation
-        self.vacation = VacationPlan.objects.create(
-            owner=self.user,
-            destination='Test Destination',
-            start_date=date(2024, 6, 15),
-            end_date=date(2024, 6, 18),
-            trip_type='booked',
-            estimated_cost=1000.00
-        )
-        
-        # Create flight
-        self.flight = Flight.objects.create(
-            vacation=self.vacation,
-            airline='Test Airlines',
-            confirmation='ABC123',
-            departure_airport='NYC',
-            arrival_airport='LAX',
-            departure_time=timezone.datetime(2024, 6, 15, 10, 30),
-            arrival_time=timezone.datetime(2024, 6, 15, 14, 30),
-            actual_cost=500.00
-        )
-        
-        # Create lodging
-        self.lodging = Lodging.objects.create(
-            vacation=self.vacation,
-            name='Test Hotel',
-            confirmation='DEF456',
-            check_in=date(2024, 6, 15),
-            check_out=date(2024, 6, 18),
-            actual_cost=300.00
-        )
-        
-        # Create activity
-        self.activity = Activity.objects.create(
-            vacation=self.vacation,
-            name='Test Activity',
-            date=date(2024, 6, 16),
-            start_time=time(14, 0),
-            suggested_by=self.user,
-            actual_cost=50.00,
-            notes='Fun activity to do'
-        )
 
     def test_itinerary_view_requires_login(self):
         """Test that itinerary view requires authentication"""
