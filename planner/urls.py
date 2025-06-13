@@ -7,6 +7,7 @@ urlpatterns = [
     path("activities/", views.activities_list, name="activities_list"),
     path("create/", views.create_vacation, name="create_vacation"),
     path("<int:pk>/", views.vacation_detail, name="vacation_detail"),
+    path("<int:pk>/itinerary/", views.vacation_itinerary, name="vacation_itinerary"),
 
     path("<int:pk>/stays/", views.vacation_stays, name="vacation_stays"),
 
