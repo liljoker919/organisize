@@ -24,6 +24,8 @@ from django.views.generic.edit import CreateView
 from django.db.models import Q
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
 from django.utils.crypto import get_random_string
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -33,7 +35,20 @@ from collections import defaultdict
 
 
 def home(request):
-    return render(request, "planner/home.html")
+    return render(request, "planner/landing.html")
+
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Account created successfully! Welcome to Organisize.')
+            return redirect('vacation_list')
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/signup.html', {'form': form})
 
 
 @method_decorator(login_required, name="dispatch")
