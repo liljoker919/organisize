@@ -1,11 +1,12 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.utils import timezone
-from datetime import timedelta, date, time
+from datetime import timedelta, date, time, datetime
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from planner.models import Group, VacationPlan, Lodging, Transportation, Activity
 from planner.forms import GroupForm, LodgingForm, TransportationForm, VacationPlanForm, ActivityForm
+
 
 
 
@@ -145,6 +146,12 @@ class GroupFormTest(TestCase):
 class LodgingModelTest(TestCase):
     def setUp(self):
         """Set up test data"""
+
+
+class VacationItineraryTest(TestCase):
+    def setUp(self):
+        """Set up test data for itinerary tests"""
+
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -502,6 +509,27 @@ class ViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Test Destination')
 
+    def test_vacation_detail_view_has_section_icons(self):
+        """Test that vacation detail view contains icons for all sections"""
+        # Create a booked vacation since icons are only shown for booked trips
+        booked_vacation = VacationPlan.objects.create(
+            owner=self.user,
+            destination='Test Booked Destination',
+            start_date=date.today() + timedelta(days=1),
+            end_date=date.today() + timedelta(days=7),
+            trip_type='booked'
+        )
+        
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vacation_detail', kwargs={'pk': booked_vacation.pk}))
+        self.assertEqual(response.status_code, 200)
+        
+        # Check that section icons are present
+        self.assertContains(response, 'bi bi-airplane-fill')  # Flights icon
+        self.assertContains(response, 'bi bi-car-fill')  # Transportation icon
+        self.assertContains(response, 'bi bi-calendar-event-fill')  # Activities icon
+        self.assertContains(response, 'bi bi-house-door')  # Stays icon (existing)
+
     def test_vacation_detail_view_unauthorized(self):
         """Test vacation detail view for unauthorized user"""
         other_user = User.objects.create_user(
@@ -554,6 +582,12 @@ class ViewTest(TestCase):
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('add_lodging', kwargs={'pk': self.vacation.pk}))
         self.assertEqual(response.status_code, 405)  # Method Not Allowed
+
+
+
+class VacationItineraryTestWithEvents(TestCase):
+    def setUp(self):
+        """Set up test data for itinerary tests with events"""
 
     def test_add_lodging_view_post(self):
         """Test add lodging view POST request"""
@@ -620,6 +654,7 @@ class ViewTest(TestCase):
 class VacationItineraryTestWithEvents(TestCase):
     def setUp(self):
         """Set up test data"""
+
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -646,6 +681,7 @@ class VacationItineraryTestWithEvents(TestCase):
             arrival_location='LAX',
             departure_time=timezone.datetime(2024, 6, 15, 10, 30),
             arrival_time=timezone.datetime(2024, 6, 15, 14, 30),
+
             actual_cost=500.00
         )
         
@@ -813,8 +849,8 @@ class TransportationModelTest(TestCase):
             confirmation='ABC123',
             departure_location='NYC',
             arrival_location='LAX',
-            departure_time=timezone.datetime(2024, 6, 15, 10, 30),
-            arrival_time=timezone.datetime(2024, 6, 15, 14, 30),
+            departure_time=timezone.make_aware(datetime(2024, 6, 15, 10, 30)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 15, 14, 30)),
             actual_cost=500.00
         )
         
@@ -832,8 +868,8 @@ class TransportationModelTest(TestCase):
             confirmation='TRAIN456',
             departure_location='Union Station',
             arrival_location='Penn Station',
-            departure_time=timezone.datetime(2024, 6, 16, 8, 0),
-            arrival_time=timezone.datetime(2024, 6, 16, 16, 0),
+            departure_time=timezone.make_aware(datetime(2024, 6, 16, 8, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 16, 16, 0)),
             actual_cost=150.00
         )
         
@@ -851,8 +887,8 @@ class TransportationModelTest(TestCase):
             confirmation='BUS789',
             departure_location='Downtown Terminal',
             arrival_location='City Center Terminal',
-            departure_time=timezone.datetime(2024, 6, 16, 12, 0),
-            arrival_time=timezone.datetime(2024, 6, 16, 18, 0),
+            departure_time=timezone.make_aware(datetime(2024, 6, 16, 12, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 16, 18, 0)),
             actual_cost=75.00
         )
         
@@ -869,8 +905,8 @@ class TransportationModelTest(TestCase):
             'confirmation': 'FERRY123',
             'departure_location': 'Port A',
             'arrival_location': 'Port B',
-            'departure_time': timezone.datetime(2024, 6, 17, 10, 0).strftime('%Y-%m-%dT%H:%M'),
-            'arrival_time': timezone.datetime(2024, 6, 17, 12, 0).strftime('%Y-%m-%dT%H:%M'),
+            'departure_time': timezone.make_aware(datetime(2024, 6, 17, 10, 0)).strftime('%Y-%m-%dT%H:%M'),
+            'arrival_time': timezone.make_aware(datetime(2024, 6, 17, 12, 0)).strftime('%Y-%m-%dT%H:%M'),
             'actual_cost': '100.00'
         }
         form = TransportationForm(data=form_data)
@@ -885,8 +921,8 @@ class TransportationModelTest(TestCase):
             confirmation='CAR999',
             departure_location='Airport Rental',
             arrival_location='Hotel',
-            departure_time=timezone.datetime(2024, 6, 15, 15, 0),
-            arrival_time=timezone.datetime(2024, 6, 15, 16, 0),
+            departure_time=timezone.make_aware(datetime(2024, 6, 15, 15, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 15, 16, 0)),
             actual_cost=200.00
         )
         
@@ -953,8 +989,8 @@ class TransportationViewTest(TestCase):
             confirmation='BUS456',
             departure_location='Terminal A',
             arrival_location='Terminal B',
-            departure_time=timezone.datetime(2024, 6, 15, 12, 0),
-            arrival_time=timezone.datetime(2024, 6, 15, 16, 0),
+            departure_time=timezone.make_aware(datetime(2024, 6, 15, 12, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 15, 16, 0)),
             actual_cost=75.00
         )
         
@@ -968,5 +1004,54 @@ class TransportationViewTest(TestCase):
         self.assertContains(response, 'Bus')
         self.assertContains(response, 'BUS456')
 
+
+
+class DataMigrationTest(TestCase):
+    def test_transportation_migration_compatibility(self):
+        """Test that data migration works correctly"""
+        # Create a vacation
+        user = User.objects.create_user(username='testuser', password='test')
+        vacation = VacationPlan.objects.create(
+            owner=user,
+            destination='Test',
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=3),
+            trip_type='booked'
+        )
+        
+        # Create a flight (legacy)
+        flight = Flight.objects.create(
+            vacation=vacation,
+            airline='Test Airlines',
+            confirmation='FL123',
+            departure_airport='NYC',
+            arrival_airport='LAX',
+            departure_time=timezone.make_aware(datetime(2024, 6, 15, 10, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 15, 14, 0)),
+            actual_cost=500.00
+        )
+        
+        # Check that we can access the flight data
+        self.assertEqual(flight.airline, 'Test Airlines')
+        self.assertEqual(flight.departure_airport, 'NYC')
+        
+        # Create a transportation entry
+        transportation = Transportation.objects.create(
+            vacation=vacation,
+            transportation_type='flight',
+            provider='Test Airlines',
+            confirmation='TR123',
+            departure_location='NYC',
+            arrival_location='LAX',
+            departure_time=timezone.make_aware(datetime(2024, 6, 15, 10, 0)),
+            arrival_time=timezone.make_aware(datetime(2024, 6, 15, 14, 0)),
+            actual_cost=500.00
+        )
+        
+        # Check that transportation data works correctly
+        self.assertEqual(transportation.transportation_type, 'flight')
+        self.assertEqual(transportation.provider, 'Test Airlines')
+        self.assertEqual(transportation.departure_location, 'NYC')
+        self.assertEqual(str(transportation), 'Flight: NYC → LAX')
 
 
