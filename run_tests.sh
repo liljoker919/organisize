@@ -25,6 +25,7 @@ python manage.py migrate
 # Run tests with coverage
 echo "Running tests with coverage..."
 coverage run --source='.' manage.py test planner
+TEST_EXIT_CODE=$?
 
 # Generate coverage report
 echo "Generating coverage report..."
@@ -38,7 +39,7 @@ echo "Test automation complete!"
 echo "Coverage report available in htmlcov/index.html"
 
 # Check if tests passed
-if [ $? -eq 0 ]; then
+if [ $TEST_EXIT_CODE -eq 0 ]; then
     echo "✅ All tests passed! Ready for deployment."
     exit 0
 else
