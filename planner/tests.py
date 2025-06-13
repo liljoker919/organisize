@@ -584,6 +584,27 @@ class ViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Test Destination')
 
+    def test_vacation_detail_view_has_section_icons(self):
+        """Test that vacation detail view contains icons for all sections"""
+        # Create a booked vacation since icons are only shown for booked trips
+        booked_vacation = VacationPlan.objects.create(
+            owner=self.user,
+            destination='Test Booked Destination',
+            start_date=date.today() + timedelta(days=1),
+            end_date=date.today() + timedelta(days=7),
+            trip_type='booked'
+        )
+        
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vacation_detail', kwargs={'pk': booked_vacation.pk}))
+        self.assertEqual(response.status_code, 200)
+        
+        # Check that section icons are present
+        self.assertContains(response, 'bi bi-airplane-fill')  # Flights icon
+        self.assertContains(response, 'bi bi-car-fill')  # Transportation icon
+        self.assertContains(response, 'bi bi-calendar-event-fill')  # Activities icon
+        self.assertContains(response, 'bi bi-house-door')  # Stays icon (existing)
+
     def test_vacation_detail_view_unauthorized(self):
         """Test vacation detail view for unauthorized user"""
         other_user = User.objects.create_user(
