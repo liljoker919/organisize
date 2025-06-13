@@ -13,6 +13,7 @@ venv/
 venv_temp/
 temp_venv/
 test_venv/
+test_env/
 ENV/
 env/
 *.env
