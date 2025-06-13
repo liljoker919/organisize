@@ -5,7 +5,7 @@ from datetime import timedelta, date, time, datetime
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from planner.models import Group, VacationPlan, Lodging, Transportation, Activity
-from planner.forms import GroupForm, LodgingForm, TransportationForm, VacationPlanForm, ActivityForm
+from planner.forms import GroupForm, LodgingForm, TransportationForm, VacationPlanForm, ActivityForm, CustomUserCreationForm
 
 
 
@@ -1036,5 +1036,180 @@ class DataMigrationTest(TestCase):
         self.assertEqual(transportation.provider, 'Test Airlines')
         self.assertEqual(transportation.departure_location, 'NYC')
         self.assertEqual(str(transportation), 'Flight: NYC → LAX')
+
+
+class RegistrationFormTest(TestCase):
+    """Test CustomUserCreationForm functionality"""
+    
+    def test_registration_form_valid_data(self):
+        """Test registration form with valid data"""
+        form_data = {
+            'username': 'testuser',
+            'email': 'test@example.com',
+            'password1': 'ComplexPass123!',
+            'password2': 'ComplexPass123!'
+        }
+        form = CustomUserCreationForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+    def test_registration_form_email_required(self):
+        """Test that email field is required"""
+        form_data = {
+            'username': 'testuser',
+            'password1': 'ComplexPass123!',
+            'password2': 'ComplexPass123!'
+        }
+        form = CustomUserCreationForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+
+    def test_registration_form_duplicate_email(self):
+        """Test that duplicate email addresses are rejected"""
+        # Create existing user
+        User.objects.create_user(
+            username='existing_user',
+            email='test@example.com',
+            password='password123'
+        )
+        
+        # Try to register with same email
+        form_data = {
+            'username': 'newuser',
+            'email': 'test@example.com',
+            'password1': 'ComplexPass123!',
+            'password2': 'ComplexPass123!'
+        }
+        form = CustomUserCreationForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+
+    def test_registration_form_password_mismatch(self):
+        """Test that password mismatch is caught"""
+        form_data = {
+            'username': 'testuser',
+            'email': 'test@example.com',
+            'password1': 'ComplexPass123!',
+            'password2': 'DifferentPass456!'
+        }
+        form = CustomUserCreationForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('password2', form.errors)
+
+    def test_registration_form_saves_email(self):
+        """Test that form saves user with email"""
+        form_data = {
+            'username': 'testuser',
+            'email': 'test@example.com',
+            'password1': 'ComplexPass123!',
+            'password2': 'ComplexPass123!'
+        }
+        form = CustomUserCreationForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        
+        user = form.save()
+        self.assertEqual(user.username, 'testuser')
+        self.assertEqual(user.email, 'test@example.com')
+        self.assertTrue(user.check_password('ComplexPass123!'))
+
+
+class RegistrationViewTest(TestCase):
+    """Test registration view functionality"""
+    
+    def setUp(self):
+        self.client = Client()
+
+    def test_registration_view_get(self):
+        """Test GET request to registration view"""
+        response = self.client.get(reverse('register'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Register')
+        self.assertContains(response, 'form')
+
+    def test_registration_view_post_valid(self):
+        """Test POST request with valid registration data"""
+        form_data = {
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password1': 'ComplexPass123!',
+            'password2': 'ComplexPass123!'
+        }
+        
+        response = self.client.post(reverse('register'), data=form_data)
+        
+        # Should redirect to login page
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('login'))
+        
+        # User should be created
+        self.assertTrue(User.objects.filter(username='newuser').exists())
+        user = User.objects.get(username='newuser')
+        self.assertEqual(user.email, 'newuser@example.com')
+
+    def test_registration_view_post_invalid(self):
+        """Test POST request with invalid registration data"""
+        form_data = {
+            'username': 'newuser',
+            'email': 'invalid-email',
+            'password1': 'ComplexPass123!',
+            'password2': 'DifferentPass456!'
+        }
+        
+        response = self.client.post(reverse('register'), data=form_data)
+        
+        # Should stay on registration page
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Register')
+        
+        # User should not be created
+        self.assertFalse(User.objects.filter(username='newuser').exists())
+
+    def test_registration_url_resolution(self):
+        """Test that registration URL resolves correctly"""
+        url = reverse('register')
+        self.assertEqual(url, '/accounts/register/')
+
+    def test_registration_template_links(self):
+        """Test that registration page has proper links"""
+        response = self.client.get(reverse('register'))
+        self.assertEqual(response.status_code, 200)
+        
+        # Should have link to login
+        self.assertContains(response, reverse('login'))
+        self.assertContains(response, 'Sign in here')
+
+    def test_login_template_has_register_link(self):
+        """Test that login page has link to registration"""
+        response = self.client.get(reverse('login'))
+        self.assertEqual(response.status_code, 200)
+        
+        # Should have link to register
+        self.assertContains(response, reverse('register'))
+        self.assertContains(response, 'Register here')
+
+    def test_navbar_has_register_link_when_not_authenticated(self):
+        """Test that navbar shows register link for unauthenticated users"""
+        response = self.client.get(reverse('register'))
+        self.assertEqual(response.status_code, 200)
+        
+        # Should have register link in navbar
+        self.assertContains(response, reverse('register'))
+        self.assertContains(response, 'Register')
+
+    def test_registration_success_message(self):
+        """Test that success message is shown after registration"""
+        form_data = {
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password1': 'ComplexPass123!',
+            'password2': 'ComplexPass123!'
+        }
+        
+        response = self.client.post(reverse('register'), data=form_data, follow=True)
+        
+        # Should show success message
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertIn('Account created for newuser', str(messages[0]))
+        self.assertIn('You can now log in', str(messages[0]))
 
 

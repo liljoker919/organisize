@@ -12,6 +12,7 @@ __pycache__/
 venv/
 new_venv/
 venv_fresh/
+fresh_venv/
 
 temp_venv/
 test_venv/

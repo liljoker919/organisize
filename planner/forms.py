@@ -3,6 +3,7 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from .models import VacationPlan, Lodging, Activity, Group, Transportation
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 
 
 class VacationPlanForm(forms.ModelForm):
@@ -261,3 +262,52 @@ class GroupForm(forms.ModelForm):
         if expiry and expiry <= timezone.now():
             raise ValidationError("Invite link expiry must be in the future.")
         return expiry
+
+
+class CustomUserCreationForm(UserCreationForm):
+    """Custom user creation form that includes email field with Bootstrap styling"""
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your email address'
+        }),
+        help_text='Required. Enter a valid email address.'
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password1', 'password2')
+        widgets = {
+            'username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter your username'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to password fields
+        self.fields['password1'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Enter your password'
+        })
+        self.fields['password2'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Confirm your password'
+        })
+
+    def clean_email(self):
+        """Validate that email is unique"""
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email=email).exists():
+            raise ValidationError("A user with this email address already exists.")
+        return email
+
+    def save(self, commit=True):
+        """Save user with email"""
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        if commit:
+            user.save()
+        return user
