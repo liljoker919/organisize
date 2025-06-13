@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}Itinerary - {{ vacation.destination }} | Organisize{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5">{{ vacation.destination }}</h1>
+            <p class="lead text-muted">{{ vacation.start_date|date:"F j, Y" }} - {{ vacation.end_date|date:"F j, Y" }}</p>
+            <p class="text-muted">{{ total_days }} day{{ total_days|pluralize }} • {{ vacation.trip_type|capfirst }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'vacation_detail' vacation.pk %}" class="btn btn-outline-primary me-2">
+                <i class="bi bi-arrow-left"></i> Back to Details
+            </a>
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="bi bi-printer"></i> Print
+            </button>
+        </div>
+    </div>
+
+    <!-- Itinerary Days -->
+    {% for day in itinerary %}
+    <div class="card mb-4 shadow-sm itinerary-day">
+        <div class="card-header bg-light">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0 fw-bold">{{ day.date|date:"l, F j, Y" }}</h5>
+                    <small class="text-muted">Day {{ forloop.counter }} of {{ total_days }}</small>
+                </div>
+                <div class="col-auto">
+                    {% if day.events %}
+                        <span class="badge bg-primary">{{ day.events|length }} event{{ day.events|length|pluralize }}</span>
+                    {% else %}
+                        <span class="badge bg-light text-muted">Free day</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        {% if day.events %}
+        <div class="card-body">
+            {% for event in day.events %}
+            <div class="row mb-3 {% if not forloop.last %}border-bottom pb-3{% endif %}">
+                <div class="col-md-2 text-center">
+                    <!-- Time Block -->
+                    <div class="time-block">
+                        {% if event.time %}
+                            <div class="time-display">{{ event.time|time:"g:i A" }}</div>
+                        {% else %}
+                            <div class="time-display text-muted">All Day</div>
+                        {% endif %}
+                        
+                        <!-- Event Type Icon -->
+                        <div class="event-icon mt-2">
+                            {% if event.type == 'flight_departure' %}
+                                <i class="bi bi-airplane-engines text-primary fs-4"></i>
+                            {% elif event.type == 'flight_arrival' %}
+                                <i class="bi bi-airplane text-success fs-4"></i>
+                            {% elif event.type == 'lodging_checkin' %}
+                                <i class="bi bi-house-door text-info fs-4"></i>
+                            {% elif event.type == 'lodging_checkout' %}
+                                <i class="bi bi-house-door text-warning fs-4"></i>
+                            {% elif event.type == 'activity' %}
+                                <i class="bi bi-star text-warning fs-4"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-10">
+                    <!-- Event Details -->
+                    <div class="event-details">
+                        <h6 class="fw-bold mb-1">{{ event.title }}</h6>
+                        <p class="text-muted mb-2">{{ event.details }}</p>
+                        
+                        <!-- Additional Information -->
+                        <div class="row">
+                            {% if event.confirmation %}
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Confirmation:</strong> {{ event.confirmation }}
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if event.cost %}
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Cost:</strong> ${{ event.cost }}
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if event.notes %}
+                        <div class="mt-2">
+                            <small class="text-secondary">
+                                <strong>Notes:</strong> {{ event.notes }}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-body text-center text-muted py-4">
+            <i class="bi bi-calendar-x fs-3 mb-2"></i>
+            <p class="mb-0">No scheduled events for this day</p>
+            <small>Enjoy some free time!</small>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    {% if not itinerary %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-calendar-plus fs-1 text-muted mb-3"></i>
+            <h5 class="text-muted">No Itinerary Available</h5>
+            <p class="text-muted">Start adding flights, lodging, and activities to create your itinerary.</p>
+            <a href="{% url 'vacation_detail' vacation.pk %}" class="btn btn-primary">Add Events</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Print Styles -->
+<style>
+@media print {
+    .navbar, .btn, .shadow-sm {
+        display: none !important;
+    }
+    
+    .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+    }
+    
+    .itinerary-day {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 20px !important;
+    }
+    
+    .card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+    }
+    
+    .time-block {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+    }
+    
+    .time-display {
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    body {
+        font-size: 12px;
+    }
+    
+    h1 {
+        font-size: 24px;
+    }
+    
+    h5 {
+        font-size: 16px;
+    }
+    
+    h6 {
+        font-size: 14px;
+    }
+}
+
+/* Screen Styles */
+@media screen {
+    .time-block {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .time-display {
+        font-weight: bold;
+        font-size: 16px;
+        color: #495057;
+    }
+    
+    .event-details h6 {
+        color: #212529;
+    }
+    
+    .itinerary-day {
+        transition: transform 0.2s ease;
+    }
+    
+    .itinerary-day:hover {
+        transform: translateY(-2px);
+    }
+}
+</style>
+{% endblock %}

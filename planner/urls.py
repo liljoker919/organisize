@@ -7,7 +7,9 @@ urlpatterns = [
     path("activities/", views.activities_list, name="activities_list"),
     path("create/", views.create_vacation, name="create_vacation"),
     path("<int:pk>/", views.vacation_detail, name="vacation_detail"),
+
     path("<int:pk>/stays/", views.vacation_stays, name="vacation_stays"),
+
     path("<int:pk>/edit/", views.edit_vacation, name="edit_vacation"),
     path("<int:pk>/delete/", views.delete_vacation, name="delete_vacation"),
     path("<int:pk>/convert/", views.convert_to_booked, name="convert_to_booked"),

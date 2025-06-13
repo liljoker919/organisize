@@ -140,14 +140,16 @@ class GroupFormTest(TestCase):
         self.assertTrue(form.is_valid())
 
 
+
 class LodgingModelTest(TestCase):
     def setUp(self):
         """Set up test data"""
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpass123'
-        )
+
+class VacationItineraryTest(TestCase):
+    def setUp(self):
+        """Set up test data for itinerary tests"""
+
+
         self.vacation = VacationPlan.objects.create(
             owner=self.user,
             destination='Test Destination',
@@ -246,3 +248,160 @@ class VacationStaysViewTest(TestCase):
         self.assertContains(response, 'Test Resort')
         self.assertContains(response, 'Hotel')  # Display name
         self.assertContains(response, 'Resort')  # Display name
+
+        
+        # Create a vacation
+        self.vacation = VacationPlan.objects.create(
+            owner=self.user,
+            destination='Test Destination',
+            start_date=date(2024, 6, 15),
+            end_date=date(2024, 6, 18),
+            trip_type='booked',
+            estimated_cost=1000.00
+        )
+        
+        # Create flight
+        self.flight = Flight.objects.create(
+            vacation=self.vacation,
+            airline='Test Airlines',
+            confirmation='ABC123',
+            departure_airport='NYC',
+            arrival_airport='LAX',
+            departure_time=timezone.datetime(2024, 6, 15, 10, 30),
+            arrival_time=timezone.datetime(2024, 6, 15, 14, 30),
+            actual_cost=500.00
+        )
+        
+        # Create lodging
+        self.lodging = Lodging.objects.create(
+            vacation=self.vacation,
+            name='Test Hotel',
+            confirmation='DEF456',
+            check_in=date(2024, 6, 15),
+            check_out=date(2024, 6, 18),
+            actual_cost=300.00
+        )
+        
+        # Create activity
+        self.activity = Activity.objects.create(
+            vacation=self.vacation,
+            name='Test Activity',
+            date=date(2024, 6, 16),
+            start_time=time(14, 0),
+            suggested_by=self.user,
+            actual_cost=50.00,
+            notes='Fun activity to do'
+        )
+
+    def test_itinerary_view_requires_login(self):
+        """Test that itinerary view requires authentication"""
+        url = reverse('vacation_itinerary', kwargs={'pk': self.vacation.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)  # Redirect to login
+
+    def test_itinerary_view_with_valid_vacation(self):
+        """Test itinerary view with authenticated user and valid vacation"""
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('vacation_itinerary', kwargs={'pk': self.vacation.pk})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Test Destination')
+        self.assertContains(response, 'Test Airlines')
+        self.assertContains(response, 'Test Hotel')
+        self.assertContains(response, 'Test Activity')
+
+    def test_itinerary_view_unauthorized_user(self):
+        """Test that unauthorized users cannot access vacation itinerary"""
+        unauthorized_user = User.objects.create_user(
+            username='unauthorized',
+            email='unauth@example.com',
+            password='testpass123'
+        )
+        self.client.login(username='unauthorized', password='testpass123')
+        url = reverse('vacation_itinerary', kwargs={'pk': self.vacation.pk})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, 404)
+
+    def test_itinerary_context_data(self):
+        """Test that itinerary view provides correct context data"""
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('vacation_itinerary', kwargs={'pk': self.vacation.pk})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('vacation', response.context)
+        self.assertIn('itinerary', response.context)
+        self.assertIn('total_days', response.context)
+        
+        # Check that we have 4 days (June 15-18)
+        self.assertEqual(response.context['total_days'], 4)
+        
+        # Check that itinerary is sorted by date
+        itinerary = response.context['itinerary']
+        self.assertEqual(len(itinerary), 4)
+        self.assertEqual(itinerary[0]['date'], date(2024, 6, 15))
+        self.assertEqual(itinerary[3]['date'], date(2024, 6, 18))
+
+    def test_itinerary_events_organization(self):
+        """Test that events are properly organized by date and time"""
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('vacation_itinerary', kwargs={'pk': self.vacation.pk})
+        response = self.client.get(url)
+        
+        itinerary = response.context['itinerary']
+        
+        # June 15 should have flight departure, arrival, and check-in
+        june_15_events = itinerary[0]['events']
+        self.assertEqual(len(june_15_events), 3)
+        
+        # Events should be sorted by time
+        event_types = [event['type'] for event in june_15_events]
+        self.assertIn('flight_departure', event_types)
+        self.assertIn('flight_arrival', event_types)
+        self.assertIn('lodging_checkin', event_types)
+        
+        # June 16 should have the activity
+        june_16_events = itinerary[1]['events']
+        self.assertEqual(len(june_16_events), 1)
+        self.assertEqual(june_16_events[0]['type'], 'activity')
+        self.assertEqual(june_16_events[0]['title'], 'Test Activity')
+        
+        # June 18 should have check-out
+        june_18_events = itinerary[3]['events']
+        self.assertEqual(len(june_18_events), 1)
+        self.assertEqual(june_18_events[0]['type'], 'lodging_checkout')
+
+    def test_itinerary_empty_vacation(self):
+        """Test itinerary view with vacation that has no events"""
+        empty_vacation = VacationPlan.objects.create(
+            owner=self.user,
+            destination='Empty Vacation',
+            start_date=date(2024, 7, 1),
+            end_date=date(2024, 7, 3),
+            trip_type='planned'
+        )
+        
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('vacation_itinerary', kwargs={'pk': empty_vacation.pk})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Empty Vacation')
+        
+        # All days should have empty events
+        itinerary = response.context['itinerary']
+        for day in itinerary:
+            self.assertEqual(len(day['events']), 0)
+
+    def test_vacation_detail_has_itinerary_link(self):
+        """Test that vacation detail page has link to itinerary"""
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('vacation_detail', kwargs={'pk': self.vacation.pk})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, 200)
+        itinerary_url = reverse('vacation_itinerary', kwargs={'pk': self.vacation.pk})
+        self.assertContains(response, itinerary_url)
+
