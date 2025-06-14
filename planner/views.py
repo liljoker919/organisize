@@ -159,7 +159,7 @@ def delete_vacation(request, pk):
 @login_required
 def vacation_detail(request, pk):
     vacation = get_object_or_404(
-        VacationPlan, Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))
+        VacationPlan.objects.filter(Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))).distinct()
     )
 
     # Initialize forms for static modals
@@ -216,7 +216,7 @@ def vacation_stays(request, pk):
 def vacation_itinerary(request, pk):
     """Generate a day-by-day itinerary for a vacation"""
     vacation = get_object_or_404(
-        VacationPlan, Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))
+        VacationPlan.objects.filter(Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))).distinct()
     )
 
     # Get all vacation events
@@ -611,10 +611,60 @@ def share_vacation(request, pk):
 @require_http_methods(["POST"])
 def invite_users(request, pk):
     vacation = get_object_or_404(VacationPlan, pk=pk, owner=request.user)
-    user_ids = request.POST.getlist("shared_with")
-    users = User.objects.filter(id__in=user_ids)
-    vacation.shared_with.add(*users)
-    messages.success(request, "Users invited successfully!")
+    
+    # Get email addresses from the form
+    emails_input = request.POST.get("invite_emails", "")
+    email_list = [email.strip() for email in emails_input.split(",") if email.strip()]
+    
+    if not email_list:
+        messages.error(request, "Please provide at least one email address.")
+        return redirect("vacation_detail", pk=pk)
+    
+    # Validate email addresses
+    from django.core.validators import validate_email
+    from django.core.exceptions import ValidationError
+    
+    valid_emails = []
+    for email in email_list:
+        try:
+            validate_email(email)
+            valid_emails.append(email)
+        except ValidationError:
+            messages.error(request, f"Invalid email address: {email}")
+            return redirect("vacation_detail", pk=pk)
+    
+    # Find existing users and add them to the vacation
+    existing_users = User.objects.filter(email__in=valid_emails)
+    already_shared_emails = set(vacation.shared_with.values_list('email', flat=True))
+    
+    new_users_added = 0
+    for user in existing_users:
+        if user.email not in already_shared_emails and user != vacation.owner:
+            vacation.shared_with.add(user)
+            new_users_added += 1
+    
+    # For emails that don't correspond to existing users, we could:
+    # 1. Store them in a separate invitation model (future enhancement)
+    # 2. Create inactive user accounts and send invitation emails (future enhancement)
+    # For now, we'll just inform the user about existing users that were added
+    
+    existing_user_emails = set(existing_users.values_list('email', flat=True))
+    non_existing_emails = set(valid_emails) - existing_user_emails
+    
+    success_message_parts = []
+    if new_users_added > 0:
+        success_message_parts.append(f"{new_users_added} existing user(s) added to vacation")
+    
+    if non_existing_emails:
+        # For now, just inform the user that these emails were noted
+        # In a full implementation, we'd send invitation emails
+        success_message_parts.append(f"Noted {len(non_existing_emails)} email(s) for users not yet registered")
+    
+    if success_message_parts:
+        messages.success(request, "; ".join(success_message_parts))
+    else:
+        messages.info(request, "No new users were added (users may already be invited or invalid)")
+    
     return redirect("vacation_detail", pk=pk)
 
 

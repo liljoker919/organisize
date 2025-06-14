@@ -540,6 +540,67 @@ class ViewTest(TestCase):
         response = self.client.get(reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
         self.assertEqual(response.status_code, 404)
 
+    def test_invite_users_by_email(self):
+        """Test inviting users via email addresses"""
+        # Create a user with an email that we'll invite
+        existing_user = User.objects.create_user(
+            username='existing',
+            email='existing@example.com',
+            password='testpass123'
+        )
+        
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Test inviting existing user by email
+        response = self.client.post(
+            reverse('invite_users', kwargs={'pk': self.vacation.pk}),
+            {'invite_emails': 'existing@example.com'}
+        )
+        
+        self.assertRedirects(response, reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
+        
+        # Check that the existing user was added to the vacation
+        self.assertIn(existing_user, self.vacation.shared_with.all())
+        
+        # Test inviting non-existing email (should be noted for future)
+        response = self.client.post(
+            reverse('invite_users', kwargs={'pk': self.vacation.pk}),
+            {'invite_emails': 'nonexisting@example.com'}
+        )
+        
+        self.assertRedirects(response, reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
+        
+        # Test multiple emails
+        new_user = User.objects.create_user(
+            username='newuser',
+            email='newuser@example.com',
+            password='testpass123'
+        )
+        
+        response = self.client.post(
+            reverse('invite_users', kwargs={'pk': self.vacation.pk}),
+            {'invite_emails': 'newuser@example.com, another@example.com'}
+        )
+        
+        self.assertRedirects(response, reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
+        self.assertIn(new_user, self.vacation.shared_with.all())
+        
+        # Test invalid email
+        response = self.client.post(
+            reverse('invite_users', kwargs={'pk': self.vacation.pk}),
+            {'invite_emails': 'invalid-email'}
+        )
+        
+        self.assertRedirects(response, reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
+        
+        # Test empty email
+        response = self.client.post(
+            reverse('invite_users', kwargs={'pk': self.vacation.pk}),
+            {'invite_emails': ''}
+        )
+        
+        self.assertRedirects(response, reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
+
     def test_create_vacation_view_get(self):
         """Test create vacation view GET request"""
         self.client.login(username='testuser', password='testpass123')
