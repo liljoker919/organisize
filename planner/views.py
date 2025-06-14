@@ -24,6 +24,7 @@ from django.views.generic import ListView
 from django.views.generic.edit import CreateView
 from django.db.models import Q
 from django.core.mail import send_mail
+from .email_utils import send_vacation_invitation_email, send_registration_confirmation_email
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
@@ -98,6 +99,13 @@ def create_vacation(request):
                 if user:
                     # Existing user: Add to shared_with
                     vacation.shared_with.add(user)
+                    # Send invitation email to existing user
+                    send_vacation_invitation_email(
+                        vacation=vacation,
+                        inviter=request.user,
+                        invitee_email=email,
+                        request=request
+                    )
                 else:
                     # New user: Create a temporary user and send registration email
                     temp_password = get_random_string(8)
@@ -107,12 +115,12 @@ def create_vacation(request):
                         password=temp_password,
                     )
                     vacation.shared_with.add(new_user)
-                    send_mail(
-                        subject="You're invited to join a vacation on Organisize!",
-                        message=f"You've been invited to join a vacation. "
-                        f"Please register using this email and the temporary password: {temp_password}",
-                        from_email="noreply@organisize.com",
-                        recipient_list=[email],
+                    send_vacation_invitation_email(
+                        vacation=vacation,
+                        inviter=request.user,
+                        invitee_email=email,
+                        temp_password=temp_password,
+                        request=request
                     )
 
             form.save_m2m()  # Save shared_with relationships
@@ -581,6 +589,13 @@ def share_vacation(request, pk):
                 if user:
                     # Existing user: Add to shared_with
                     vacation.shared_with.add(user)
+                    # Send invitation email to existing user
+                    send_vacation_invitation_email(
+                        vacation=vacation,
+                        inviter=request.user,
+                        invitee_email=email,
+                        request=request
+                    )
                 else:
                     # New user: Create a temporary user and send registration email
                     temp_password = get_random_string(8)
@@ -590,12 +605,12 @@ def share_vacation(request, pk):
                         password=temp_password,
                     )
                     vacation.shared_with.add(new_user)
-                    send_mail(
-                        subject="You're invited to join a vacation on Organisize!",
-                        message=f"You've been invited to join a vacation. "
-                        f"Please register using this email and the temporary password: {temp_password}",
-                        from_email="noreply@organisize.com",
-                        recipient_list=[email],
+                    send_vacation_invitation_email(
+                        vacation=vacation,
+                        inviter=request.user,
+                        invitee_email=email,
+                        temp_password=temp_password,
+                        request=request
                     )
             messages.success(request, "Vacation shared successfully!")
             return redirect("vacation_detail", pk=pk)
@@ -684,8 +699,12 @@ def register(request):
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
             username = form.cleaned_data.get('username')
+            
+            # Send registration confirmation email
+            send_registration_confirmation_email(user, request)
+            
             messages.success(request, f"Account created for {username}! You can now log in.")
             return redirect('login')
     else:

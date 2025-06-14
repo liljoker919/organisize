@@ -28,6 +28,7 @@ urlpatterns = [
     path("activity/<int:pk>/delete/", views.delete_activity, name="delete_activity"),
     path('activity/<int:pk>/vote/', views.vote_activity, name='vote_activity'),
     # User management
+    path("<int:pk>/share/", views.share_vacation, name="share_vacation"),
     path("vacations/<int:pk>/invite/", views.invite_users, name="invite_users"),
     path("vacations/<int:pk>/manage/", views.manage_users, name="manage_users"),
     # Groups
