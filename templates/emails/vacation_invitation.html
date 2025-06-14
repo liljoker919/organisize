@@ -1,0 +1,54 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}You're Invited to Join a Vacation!{% endblock %}
+
+{% block header_title %}Vacation Invitation{% endblock %}
+
+{% block content %}
+<h2>You're Invited to Join a Vacation!</h2>
+
+<p>Hello,</p>
+
+<p><strong>{{ inviter_name }}</strong> has invited you to join an exciting vacation to <strong>{{ vacation_destination }}</strong>!</p>
+
+<div class="alert alert-info">
+    <h3>Trip Details:</h3>
+    <ul>
+        <li><strong>Destination:</strong> {{ vacation_destination }}</li>
+        <li><strong>Dates:</strong> {{ vacation_start_date }} to {{ vacation_end_date }}</li>
+        {% if vacation_notes %}
+        <li><strong>Notes:</strong> {{ vacation_notes }}</li>
+        {% endif %}
+    </ul>
+</div>
+
+{% if is_new_user %}
+<p>We've created a temporary account for you to get started:</p>
+<div class="alert alert-info">
+    <strong>Your Login Details:</strong><br>
+    <strong>Email:</strong> {{ user_email }}<br>
+    <strong>Temporary Password:</strong> <code>{{ temp_password }}</code>
+</div>
+
+<div class="text-center">
+    <a href="{{ login_url }}" class="btn btn-primary">Login and View Vacation</a>
+</div>
+
+<p><strong>Important:</strong> Please change your password after logging in for the first time.</p>
+{% else %}
+<div class="text-center">
+    <a href="{{ vacation_url }}" class="btn btn-primary">View Vacation Details</a>
+</div>
+{% endif %}
+
+<p>Join {{ inviter_name }} and start planning this amazing trip together! You'll be able to:</p>
+<ul>
+    <li>View and suggest activities</li>
+    <li>See transportation and accommodation details</li>
+    <li>Collaborate on the itinerary</li>
+    <li>Track shared expenses</li>
+</ul>
+
+<p>Looking forward to seeing you on the trip!<br>
+<strong>The Organisize Team</strong></p>
+{% endblock %}
