@@ -5,3 +5,4 @@ typing_extensions==4.13.1
 tzdata==2025.2
 coverage==7.9.1
 pytest-django==4.11.1
+django-environ==0.11.2
