@@ -174,6 +174,63 @@ The Docker setup uses `.env.dev` for development settings:
 
 For production, create a `.env` file with your production settings.
 
+### Option 3: Native MailHog Installation (CI/Alternative)
+
+If you prefer not to use Docker or are setting up CI/CD, you can install MailHog directly:
+
+#### Installing MailHog
+
+**Linux/macOS:**
+```bash
+# Download MailHog binary
+wget -O mailhog https://github.com/mailhog/MailHog/releases/download/v1.0.1/MailHog_linux_amd64
+chmod +x mailhog
+sudo mv mailhog /usr/local/bin/
+
+# Start MailHog
+mailhog
+```
+
+**Using Go (cross-platform):**
+```bash
+go install github.com/mailhog/MailHog@latest
+MailHog
+```
+
+#### Configuration for Native MailHog
+
+1. Copy the CI environment template:
+```bash
+cp .env.ci .env
+```
+
+2. Start MailHog in background:
+```bash
+mailhog > /dev/null 2>&1 &
+```
+
+3. Test email functionality:
+```bash
+python manage.py test_mailhog_email
+```
+
+4. View emails at http://localhost:8025
+
+#### CI/CD Integration
+
+The project includes automated CI testing with MailHog in GitHub Actions. The workflow:
+
+1. Installs MailHog binary
+2. Starts MailHog in background
+3. Uses `.env.ci` configuration (localhost instead of Docker service name)
+4. Tests email functionality before running the full test suite
+5. Verifies emails are captured in MailHog via API
+
+This approach is ideal for:
+- Continuous Integration environments
+- Environments where Docker is not available
+- Minimal setup requirements
+
 ## Technology Stack
 
 - Django 4.2.20
