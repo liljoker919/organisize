@@ -116,22 +116,54 @@ After starting the Docker services, test email delivery:
 
 ```bash
 # Method 1: Use the custom management command
-python manage.py test_mailhog_email
+docker-compose exec web python manage.py test_mailhog_email
 
 # Method 2: Use Django's built-in sendtestemail command
-python manage.py sendtestemail test@example.com
+docker-compose exec web python manage.py sendtestemail test@example.com
 
-# Method 3: Run the standalone test script
-python test_mailhog.py
+# Method 3: Test with specific email address
+docker-compose exec web python manage.py test_mailhog_email --email your@email.com
 
-# Method 4: Test with specific email address
-python manage.py test_mailhog_email --email your@email.com
-
-# Method 5: Test only HTML emails
-python manage.py test_mailhog_email --html-only
+# Method 4: Test only HTML emails
+docker-compose exec web python manage.py test_mailhog_email --html-only
 ```
 
 Then visit http://localhost:8025 to see the test emails in MailHog.
+
+#### Troubleshooting Docker Setup
+
+**DNS Resolution Issues**
+If you encounter "Temporary failure in name resolution" errors when testing emails:
+
+1. **Check container connectivity**:
+```bash
+docker-compose ps  # Ensure both containers are running
+```
+
+2. **Use IP address workaround**:
+```bash
+# Find MailHog container IP
+docker inspect mailhog | grep IPAddress
+
+# Update .env.dev with the IP address
+EMAIL_HOST=172.18.0.2  # Replace with actual IP
+```
+
+3. **Alternative: Use host networking** (Linux only):
+```bash
+# Modify docker-compose.yml to add:
+network_mode: "host"
+```
+
+4. **Restart services after configuration changes**:
+```bash
+docker-compose down && docker-compose up
+```
+
+**Common Issues**
+- **Port conflicts**: Ensure ports 8000, 8025, and 1025 are not in use
+- **Permission errors**: Make sure Docker has permission to bind to ports
+- **Build failures**: Check that `requirements.txt` dependencies can be installed
 
 #### Environment Configuration
 
