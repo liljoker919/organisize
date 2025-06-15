@@ -1,6 +1,6 @@
 <div class="modal fade" id="editLodgingModal-{{ lodging.id }}" tabindex="-1" aria-labelledby="editLodgingModalLabel"
     aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" action="{% url 'edit_lodging' lodging.id %}">
                 {% csrf_token %}
