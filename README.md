@@ -27,6 +27,8 @@ Plan, organize, and manage your vacations seamlessly.
 
 ## Installation
 
+### Option 1: Standard Installation
+
 1. Clone the repository:
 ```bash
 git clone <repository-url>
@@ -57,12 +59,97 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+### Option 2: Docker Development Setup (Recommended)
+
+For the best development experience with email testing, use Docker with MailHog:
+
+#### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+#### Quick Start
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd organisize
+```
+
+2. Start the development environment:
+```bash
+docker-compose up
+```
+
+This will start:
+- **Django app** at http://localhost:8000
+- **MailHog** (email testing) at http://localhost:8025
+
+#### Email Testing with MailHog
+
+MailHog captures all outgoing emails in development so you can:
+- View sent emails at http://localhost:8025
+- Test email functionality without sending real emails
+- See email content and formatting
+
+#### Development Workflow
+
+```bash
+# Start services
+docker-compose up
+
+# Run in background
+docker-compose up -d
+
+# View logs
+docker-compose logs web
+docker-compose logs mailhog
+
+# Stop services
+docker-compose down
+
+# Rebuild after code changes
+docker-compose up --build
+```
+
+#### Testing Email Delivery
+
+After starting the Docker services, test email delivery:
+
+```bash
+# Method 1: Use the custom management command
+python manage.py test_mailhog_email
+
+# Method 2: Use Django's built-in sendtestemail command
+python manage.py sendtestemail test@example.com
+
+# Method 3: Run the standalone test script
+python test_mailhog.py
+
+# Method 4: Test with specific email address
+python manage.py test_mailhog_email --email your@email.com
+
+# Method 5: Test only HTML emails
+python manage.py test_mailhog_email --html-only
+```
+
+Then visit http://localhost:8025 to see the test emails in MailHog.
+
+#### Environment Configuration
+
+The Docker setup uses `.env.dev` for development settings:
+- `DEBUG=True`
+- Email routing to MailHog
+- Development-friendly configurations
+
+For production, create a `.env` file with your production settings.
+
 ## Technology Stack
 
 - Django 4.2.20
 - Bootstrap 5.3.0
 - SQLite (default database)
 - Python 3.x
+- Docker & Docker Compose (development)
+- MailHog (email testing)
 
 ## Project Structure
 
