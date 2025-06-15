@@ -1273,4 +1273,39 @@ class RegistrationViewTest(TestCase):
         self.assertIn('Account created for newuser', str(messages[0]))
         self.assertIn('You can now log in', str(messages[0]))
 
+    def test_authenticated_user_redirected_from_register_get(self):
+        """Test that authenticated users are redirected from register page (GET)"""
+        # Create and login a user
+        user = User.objects.create_user(username='testuser', password='testpass123')
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Try to access register page
+        response = self.client.get(reverse('register'))
+        
+        # Should be redirected to vacation list
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('vacation_list'))
+
+    def test_authenticated_user_redirected_from_register_post(self):
+        """Test that authenticated users are redirected from register page (POST)"""
+        # Create and login a user
+        user = User.objects.create_user(username='testuser', password='testpass123')
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Try to submit registration form
+        form_data = {
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password1': 'ComplexPass123!',
+            'password2': 'ComplexPass123!'
+        }
+        response = self.client.post(reverse('register'), data=form_data)
+        
+        # Should be redirected to vacation list
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('vacation_list'))
+        
+        # User should NOT be created
+        self.assertFalse(User.objects.filter(username='newuser').exists())
+
 

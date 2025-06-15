@@ -26,7 +26,6 @@ from django.db.models import Q
 from django.core.mail import send_mail
 from .email_utils import send_vacation_invitation_email, send_registration_confirmation_email
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.utils.crypto import get_random_string
 from django.core.validators import validate_email
@@ -38,19 +37,6 @@ from collections import defaultdict
 
 def home(request):
     return render(request, "planner/landing.html")
-
-
-def signup(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Account created successfully! Welcome to Organisize.')
-            return redirect('vacation_list')
-    else:
-        form = UserCreationForm()
-    return render(request, 'registration/signup.html', {'form': form})
 
 
 @method_decorator(login_required, name="dispatch")
@@ -746,6 +732,10 @@ def create_group(request):
 
 def register(request):
     """User registration view"""
+    # Redirect authenticated users to vacation list
+    if request.user.is_authenticated:
+        return redirect('vacation_list')
+    
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
