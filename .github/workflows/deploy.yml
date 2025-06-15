@@ -19,23 +19,69 @@ jobs:
           
       - name: Install and start MailHog
         run: |
-          # Download and install MailHog
+          # Download and install MailHog with proper error handling
+          echo "Downloading MailHog..."
           wget -O mailhog https://github.com/mailhog/MailHog/releases/download/v1.0.1/MailHog_linux_amd64
+          if [ $? -ne 0 ]; then
+            echo "Failed to download MailHog"
+            exit 1
+          fi
+          
+          # Make executable and move to PATH
           chmod +x mailhog
           sudo mv mailhog /usr/local/bin/
           
-          # Start MailHog in background
-          mailhog > /dev/null 2>&1 &
-          echo "MailHog PID: $!"
+          # Verify MailHog binary works
+          echo "Testing MailHog binary..."
+          mailhog --version || echo "MailHog version check failed (this is expected for v1.0.1)"
           
-          # Wait for MailHog to start
-          sleep 5
+          # Start MailHog in background with proper logging
+          echo "Starting MailHog..."
+          nohup mailhog > mailhog.log 2>&1 &
+          MAILHOG_PID=$!
+          echo "MailHog started with PID: $MAILHOG_PID"
           
-          # Verify MailHog is running
-          curl -f http://localhost:8025/ || echo "MailHog not responding on web interface"
+          # Wait longer for MailHog to fully start
+          echo "Waiting for MailHog to start..."
+          sleep 10
+          
+          # Check if process is still running
+          if ps -p $MAILHOG_PID > /dev/null; then
+            echo "✅ MailHog process is running"
+          else
+            echo "❌ MailHog process is not running"
+            echo "MailHog log:"
+            cat mailhog.log
+            exit 1
+          fi
+          
+          # Test network connectivity
+          echo "Testing MailHog connectivity..."
+          for i in {1..5}; do
+            if curl -f http://localhost:8025/ > /dev/null 2>&1; then
+              echo "✅ MailHog web interface is accessible"
+              break
+            else
+              echo "Attempt $i: MailHog web interface not yet accessible, waiting..."
+              sleep 3
+            fi
+            if [ $i -eq 5 ]; then
+              echo "❌ MailHog web interface not accessible after 5 attempts"
+              echo "MailHog log:"
+              cat mailhog.log
+              echo "Network status:"
+              netstat -tlnp | grep 8025 || echo "Port 8025 not listening"
+              exit 1
+            fi
+          done
           
       - name: Install dependencies
         run: |
+          # Install system dependencies
+          sudo apt-get update
+          sudo apt-get install -y jq
+          
+          # Install Python dependencies
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           
@@ -44,43 +90,86 @@ jobs:
           # Use CI-specific environment file that has localhost instead of docker service name
           cp .env.ci .env
           
+          # Verify environment configuration
+          echo "Environment configuration:"
+          echo "EMAIL_BACKEND=$(grep EMAIL_BACKEND .env | cut -d= -f2)"
+          echo "EMAIL_HOST=$(grep EMAIL_HOST .env | cut -d= -f2)"
+          echo "EMAIL_PORT=$(grep EMAIL_PORT .env | cut -d= -f2)"
+          echo "DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d= -f2)"
+          
       - name: Run migrations
         run: |
           python manage.py migrate
           
       - name: Test MailHog connection
         run: |
-          # Test that MailHog is accessible
+          # Test SMTP port connectivity
+          echo "Testing MailHog SMTP connection..."
           python -c "
           import socket
+          import sys
           try:
               sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-              sock.settimeout(5)
+              sock.settimeout(10)
               result = sock.connect_ex(('localhost', 1025))
               sock.close()
               if result == 0:
                   print('✅ MailHog SMTP port 1025 is accessible')
               else:
                   print('❌ MailHog SMTP port 1025 is not accessible')
-                  exit(1)
+                  print('Connection result code:', result)
+                  sys.exit(1)
           except Exception as e:
               print(f'❌ Error testing MailHog connection: {e}')
-              exit(1)
+              sys.exit(1)
           "
+          
+          # Test HTTP API connectivity
+          echo "Testing MailHog HTTP API..."
+          response=$(curl -s -w "%{http_code}" http://localhost:8025/api/v1/messages)
+          if echo "$response" | grep -q "200"; then
+            echo "✅ MailHog HTTP API is accessible"
+          else
+            echo "❌ MailHog HTTP API not accessible. Response: $response"
+            echo "Checking MailHog status..."
+            ps aux | grep mailhog | grep -v grep || echo "No MailHog process found"
+            echo "Checking port usage..."
+            netstat -tlnp | grep -E "(1025|8025)" || echo "Ports 1025/8025 not in use"
+            exit 1
+          fi
           
       - name: Test email functionality with MailHog
         run: |
           # Test sending email via Django management command
-          python manage.py test_mailhog_email --email ci-test@example.com
+          echo "Testing email delivery via Django management command..."
+          python manage.py test_mailhog_email --email ci-test@example.com --basic-only
+          
+          # Wait a moment for email to be processed
+          sleep 3
           
           # Verify email was captured by MailHog API
-          sleep 2
+          echo "Verifying email was captured by MailHog..."
           response=$(curl -s http://localhost:8025/api/v1/messages)
+          
+          # Debug output
+          echo "MailHog API response:"
+          echo "$response" | jq . 2>/dev/null || echo "$response"
+          
+          # Check if our test email was captured
           if echo "$response" | grep -q "ci-test@example.com"; then
-            echo "✅ Email successfully sent to MailHog"
+            echo "✅ Email successfully sent to and captured by MailHog"
+            # Show count of emails
+            email_count=$(echo "$response" | jq '.count // 0' 2>/dev/null || echo "unknown")
+            echo "Total emails in MailHog: $email_count"
           else
             echo "❌ Email not found in MailHog"
-            echo "MailHog response: $response"
+            echo "Expected to find 'ci-test@example.com' in response"
+            # Additional debugging
+            echo "Checking MailHog status..."
+            ps aux | grep mailhog | grep -v grep || echo "No MailHog process found"
+            echo "Checking if any emails were captured..."
+            email_count=$(echo "$response" | jq '.count // 0' 2>/dev/null || echo "0")
+            echo "Total emails in MailHog: $email_count"
             exit 1
           fi
           
