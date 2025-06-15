@@ -46,17 +46,17 @@ class LandingPageTest(TestCase):
         """Test that CTA buttons link to correct pages"""
         response = self.client.get('/')
         
-        # Check for signup links
-        self.assertContains(response, reverse('signup'))
+        # Check for register links
+        self.assertContains(response, reverse('register'))
         
         # Check for login links  
         self.assertContains(response, reverse('login'))
 
-    def test_signup_page_accessible(self):
-        """Test that signup page is accessible"""
-        response = self.client.get(reverse('signup'))
+    def test_register_page_accessible(self):
+        """Test that register page is accessible"""
+        response = self.client.get(reverse('register'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Create Your Account')
+        self.assertContains(response, 'Register')
 
     def test_responsive_design_classes(self):
         """Test that Bootstrap responsive classes are present"""
@@ -72,25 +72,27 @@ class LandingPageTest(TestCase):
         self.assertIn('card', content)
 
 
-class SignupFunctionalityTest(TestCase):
+class RegisterFunctionalityTest(TestCase):
     def setUp(self):
         self.client = Client()
 
-    def test_signup_form_renders(self):
-        """Test that signup form renders correctly"""
-        response = self.client.get(reverse('signup'))
+    def test_register_form_renders(self):
+        """Test that register form renders correctly"""
+        response = self.client.get(reverse('register'))
         self.assertContains(response, 'name="username"')
+        self.assertContains(response, 'name="email"')
         self.assertContains(response, 'name="password1"')
         self.assertContains(response, 'name="password2"')
 
-    def test_successful_signup_redirects_to_vacation_list(self):
-        """Test that successful signup redirects to vacation list"""
-        response = self.client.post(reverse('signup'), {
+    def test_successful_register_redirects_to_login(self):
+        """Test that successful registration redirects to login page"""
+        response = self.client.post(reverse('register'), {
             'username': 'testuser',
+            'email': 'test@example.com',
             'password1': 'testpass123',
             'password2': 'testpass123'
         })
-        self.assertRedirects(response, reverse('vacation_list'))
+        self.assertRedirects(response, reverse('login'))
         
         # Verify user was created
         self.assertTrue(User.objects.filter(username='testuser').exists())
