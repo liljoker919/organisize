@@ -41,8 +41,8 @@ jobs:
           
       - name: Set up environment for testing
         run: |
-          # Use CI-specific environment file that has localhost instead of docker service name
-          cp .env.ci .env
+          # Set DJANGO_ENV to use .env.ci configuration
+          echo "DJANGO_ENV=ci" >> $GITHUB_ENV
           
       - name: Run migrations
         run: |
