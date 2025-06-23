@@ -5,16 +5,12 @@ import environ
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Initialize environ
-env = environ.Env(
-    # Set casting and default values
-    DEBUG=(bool, True),
-    EMAIL_PORT=(int, 587),
-    EMAIL_USE_TLS=(bool, True),
-)
+# Initialize environment variables
+env = environ.Env()
 
-# Read .env file if it exists
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+# detect production vs. dev via an ENV var (e.g. DJANGO_ENV)
+ENV = os.environ.get("DJANGO_ENV", "dev")
+env.read_env(os.path.join(BASE_DIR, f".env.{ENV}"))
 
 
 # Quick-start development settings - unsuitable for production
@@ -24,7 +20,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = "django-insecure-g4)5^0ptrfuf3q$$-k&7-x-ha5u7#1a0q+zb$nbyly5+)(b89&"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG')
+DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = ["3.128.45.219", "organisize.com", "127.0.0.1", "localhost", "*"]
 
@@ -133,7 +129,9 @@ LOGIN_REDIRECT_URL = "vacation_list"  # or another view name like "home"
 LOGOUT_REDIRECT_URL = "login"
 
 # Email settings - configured via environment variables with django-environ
-EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
 EMAIL_HOST = env("EMAIL_HOST", default="")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
