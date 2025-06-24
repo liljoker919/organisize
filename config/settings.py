@@ -20,9 +20,14 @@ env.read_env(os.path.join(BASE_DIR, f".env.{ENV}"))
 SECRET_KEY = "django-insecure-g4)5^0ptrfuf3q$$-k&7-x-ha5u7#1a0q+zb$nbyly5+)(b89&"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUG")
+DEBUG = env.bool("DEBUG")
 
-ALLOWED_HOSTS = ["3.128.45.219", "organisize.com", "127.0.0.1", "localhost", "*"]
+# Configure ALLOWED_HOSTS based on environment
+if ENV == "prod":
+    ALLOWED_HOSTS = env.list("ALLOWED_HOSTS_PROD", default=["organisize.com"])
+else:
+    # Development and other environments - include localhost and development hosts
+    ALLOWED_HOSTS = ["3.128.45.219", "organisize.com", "127.0.0.1", "localhost", "*"]
 
 
 # Application definition
