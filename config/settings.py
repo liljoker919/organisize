@@ -20,7 +20,7 @@ env.read_env(os.path.join(BASE_DIR, f".env.{ENV}"))
 SECRET_KEY = "django-insecure-g4)5^0ptrfuf3q$$-k&7-x-ha5u7#1a0q+zb$nbyly5+)(b89&"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG")
+DEBUG = DEBUG = env.bool("DEBUG")
 
 # Configure ALLOWED_HOSTS based on environment
 if ENV == "prod":
