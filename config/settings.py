@@ -21,7 +21,16 @@ env.read_env(os.path.join(BASE_DIR, f".env.{ENV}"))
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = "False"
+DEBUG = env.bool("DEBUG")
+
+# --- START DEBUG TROUBLESHOOTING PRINT ---
+import sys
+
+print(
+    f"*** SETTINGS.PY LOADED - DJANGO_ENV: {ENV}, DEBUG_FROM_ENV: {env.bool('DEBUG')}, FINAL_DEBUG_BEFORE_OVERRIDE: {DEBUG} ***",
+    file=sys.stderr,
+)
+# --- END DEBUG TROUBLESHOOTING PRINT ---
 
 # Force DEBUG=False in production environment regardless of .env file configuration
 if ENV == "prod":
