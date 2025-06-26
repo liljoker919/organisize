@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 
 # detect production vs. dev via an ENV var (e.g. DJANGO_ENV)
-ENV = os.environ.get("DJANGO_ENV", "dev")
+ENV = os.environ.get("DJANGO_ENV", "prod")
 env.read_env(os.path.join(BASE_DIR, f".env.{ENV}"))
 
 
@@ -29,8 +29,11 @@ if ENV == "prod":
 # Safety check: Fail fast if DEBUG is somehow still True in production
 if ENV == "prod" and DEBUG:
     import sys
+
     print("CRITICAL ERROR: DEBUG is True in production environment!", file=sys.stderr)
-    print("This is a security risk and the application will not start.", file=sys.stderr)
+    print(
+        "This is a security risk and the application will not start.", file=sys.stderr
+    )
     print(f"Current DJANGO_ENV: {ENV}", file=sys.stderr)
     print(f"Current DEBUG: {DEBUG}", file=sys.stderr)
     sys.exit(1)
