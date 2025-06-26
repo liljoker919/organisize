@@ -21,7 +21,7 @@ env.read_env(os.path.join(BASE_DIR, f".env.{ENV}"))
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG")
+DEBUG = "False"
 
 # Force DEBUG=False in production environment regardless of .env file configuration
 if ENV == "prod":
