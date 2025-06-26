@@ -9,8 +9,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 
 # detect production vs. dev via an ENV var (e.g. DJANGO_ENV)
-# ENV = os.environ.get("DJANGO_ENV", "dev")
-ENV = "prod"
+ENV = os.environ.get("DJANGO_ENV", "dev")
+
 env.read_env(os.path.join(BASE_DIR, f".env.{ENV}"))
 
 
