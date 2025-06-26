@@ -1,0 +1,130 @@
+<!-- templates/404.html -->
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - Organisize{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center min-vh-75">
+        <div class="col-lg-6 col-md-8 col-sm-10">
+            <div class="text-center">
+                <!-- Large Icon -->
+                <div class="mb-4">
+                    <i class="bi bi-compass display-1 text-primary opacity-75" style="font-size: 6rem;"></i>
+                </div>
+                
+                <!-- Main Heading -->
+                <h1 class="display-4 fw-bold text-dark mb-3">
+                    Oops! Page not found.
+                </h1>
+                
+                <!-- Descriptive Message -->
+                <p class="lead text-muted mb-4 px-3">
+                    The page you're looking for doesn't exist or has been moved. 
+                    Let's get you back to planning your perfect vacation!
+                </p>
+                
+                <!-- Action Buttons -->
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center mb-4">
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg px-4 py-2">
+                        <i class="bi bi-house-door me-2"></i>
+                        Go to Homepage
+                    </a>
+                    <a href="{% url 'vacation_list' %}" class="btn btn-outline-primary btn-lg px-4 py-2">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        View Vacations
+                    </a>
+                </div>
+                
+                <!-- Additional Help Text -->
+                <div class="border-top pt-4 mt-4">
+                    <p class="text-muted small mb-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Need help? Here are some suggestions:
+                    </p>
+                    <div class="row text-start">
+                        <div class="col-md-6 mb-2">
+                            <ul class="list-unstyled small text-muted">
+                                <li><i class="bi bi-check2 text-success me-2"></i>Check the URL for typos</li>
+                                <li><i class="bi bi-check2 text-success me-2"></i>Use the navigation menu above</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <ul class="list-unstyled small text-muted">
+                                <li><i class="bi bi-check2 text-success me-2"></i>Return to your vacation dashboard</li>
+                                <li><i class="bi bi-check2 text-success me-2"></i>Start planning a new trip</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom styling for this page -->
+<style>
+.min-vh-75 {
+    min-height: 75vh;
+}
+
+.opacity-75 {
+    opacity: 0.75;
+}
+
+/* Enhance button hover effects */
+.btn-lg:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease-in-out;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 575.98px) {
+    .display-1 {
+        font-size: 4rem !important;
+    }
+    
+    .display-4 {
+        font-size: 1.75rem !important;
+    }
+    
+    .lead {
+        font-size: 1.1rem !important;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem !important;
+        font-size: 1rem !important;
+    }
+}
+
+/* Add some subtle animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.text-center > * {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.text-center > *:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.text-center > *:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.text-center > *:nth-child(4) {
+    animation-delay: 0.3s;
+}
+</style>
+{% endblock %}
