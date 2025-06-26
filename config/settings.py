@@ -22,6 +22,19 @@ SECRET_KEY = "django-insecure-g4)5^0ptrfuf3q$$-k&7-x-ha5u7#1a0q+zb$nbyly5+)(b89&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG")
 
+# Force DEBUG=False in production environment regardless of .env file configuration
+if ENV == "prod":
+    DEBUG = False
+
+# Safety check: Fail fast if DEBUG is somehow still True in production
+if ENV == "prod" and DEBUG:
+    import sys
+    print("CRITICAL ERROR: DEBUG is True in production environment!", file=sys.stderr)
+    print("This is a security risk and the application will not start.", file=sys.stderr)
+    print(f"Current DJANGO_ENV: {ENV}", file=sys.stderr)
+    print(f"Current DEBUG: {DEBUG}", file=sys.stderr)
+    sys.exit(1)
+
 # Configure ALLOWED_HOSTS based on environment
 if ENV == "prod":
     ALLOWED_HOSTS = env.list("ALLOWED_HOSTS_PROD", default=["organisize.com"])

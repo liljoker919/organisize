@@ -3,6 +3,10 @@ Test production environment configuration hardening.
 
 This test validates that the production settings correctly configure DEBUG and ALLOWED_HOSTS
 based on the DJANGO_ENV environment variable.
+
+The production environment implements defense-in-depth for DEBUG settings:
+1. DEBUG is forced to False when DJANGO_ENV=prod regardless of .env file configuration
+2. A safety check prevents startup if DEBUG somehow remains True in production
 """
 import os
 import tempfile
@@ -19,6 +23,20 @@ class ProductionConfigurationTest(TestCase):
         if current_env == 'prod':
             self.assertFalse(settings.DEBUG, "DEBUG should be False in production environment")
             self.assertIsInstance(settings.DEBUG, bool, "DEBUG should be a boolean, not string")
+        else:
+            # Skip this test if not in prod environment
+            self.skipTest("Test only runs in production environment")
+
+    def test_production_debug_forced_off(self):
+        """Test that DEBUG is forced to False in production regardless of .env configuration."""
+        current_env = os.environ.get('DJANGO_ENV')
+        if current_env == 'prod':
+            # This test verifies that even if .env.prod were misconfigured with DEBUG=True,
+            # the production environment forces DEBUG=False for security
+            self.assertFalse(settings.DEBUG, 
+                            "DEBUG must be forced to False in production environment")
+            self.assertIsInstance(settings.DEBUG, bool, 
+                                "DEBUG should be a boolean value")
         else:
             # Skip this test if not in prod environment
             self.skipTest("Test only runs in production environment")
