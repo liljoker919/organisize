@@ -10,6 +10,7 @@ __pycache__/
 .env
 .venv/
 venv/
+venv_linux/
 new_venv/
 new_env/
 venv_fresh/

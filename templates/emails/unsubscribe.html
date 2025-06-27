@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-envelope"></i> Email Preferences for {{ user.username }}</h4>
+                </div>
+                <div class="card-body">
+                    {% if preferences.is_unsubscribed %}
+                    <div class="alert alert-warning">
+                        <h5>You are currently unsubscribed from all emails</h5>
+                        <p>You unsubscribed on {{ preferences.unsubscribed_at|date:"M d, Y" }}. You can resubscribe using the options below.</p>
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if preferences.is_unsubscribed %}
+                        <div class="mb-4">
+                            <button type="submit" name="action" value="update_preferences" class="btn btn-success">
+                                <input type="hidden" name="resubscribe" value="true">
+                                Resubscribe to Selected Email Types
+                            </button>
+                        </div>
+                        {% endif %}
+
+                        <h5>Choose which emails you'd like to receive:</h5>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="receive_vacation_invitations" id="vacation_invites"
+                                   {% if preferences.receive_vacation_invitations %}checked{% endif %}>
+                            <label class="form-check-label" for="vacation_invites">
+                                <strong>Vacation Invitations</strong><br>
+                                <small class="text-muted">Receive emails when someone invites you to join their vacation plans</small>
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="receive_activity_notifications" id="activity_notifications"
+                                   {% if preferences.receive_activity_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="activity_notifications">
+                                <strong>Activity Notifications</strong><br>
+                                <small class="text-muted">Receive updates about activities, votes, and vacation changes</small>
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="receive_account_notifications" id="account_notifications"
+                                   {% if preferences.receive_account_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="account_notifications">
+                                <strong>Account Notifications</strong><br>
+                                <small class="text-muted">Important account updates and security notifications</small>
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="receive_marketing_emails" id="marketing_emails"
+                                   {% if preferences.receive_marketing_emails %}checked{% endif %}>
+                            <label class="form-check-label" for="marketing_emails">
+                                <strong>Marketing & Tips</strong><br>
+                                <small class="text-muted">Travel tips, feature updates, and promotional content</small>
+                            </label>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <small><strong>Note:</strong> Password reset emails cannot be disabled for security reasons.</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" name="action" value="update_preferences" class="btn btn-primary">
+                                Update Preferences
+                            </button>
+                            
+                            {% if not preferences.is_unsubscribed %}
+                            <button type="submit" name="action" value="unsubscribe_all" class="btn btn-outline-danger"
+                                    onclick="return confirm('Are you sure you want to unsubscribe from all emails? You can resubscribe later.')">
+                                Unsubscribe from All
+                            </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="mt-3 text-center">
+                <a href="{% url 'vacation_list' %}" class="btn btn-outline-secondary">Back to Vacations</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

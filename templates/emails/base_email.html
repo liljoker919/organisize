@@ -101,6 +101,14 @@
         <div class="footer">
             <p>© 2024 Organisize. All rights reserved.</p>
             <p class="text-muted">This email was sent from Organisize vacation planning platform.</p>
+            {% block footer_additional %}{% endblock %}
+            {% if can_unsubscribe and unsubscribe_url %}
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+                <p class="text-muted">
+                    <small>Don't want to receive these emails? <a href="{{ unsubscribe_url }}" style="color: #6c757d;">Unsubscribe or manage your preferences</a></small>
+                </p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </body>

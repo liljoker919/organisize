@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .views import VacationListView, create_vacation
+from . import email_views
 
 urlpatterns = [
     path("", VacationListView.as_view(), name="vacation_list"),
@@ -35,4 +36,7 @@ urlpatterns = [
     path("groups/", views.group_list, name="group_list"),
     path("groups/create/", views.create_group, name="create_group"),
     path("groups/<int:pk>/", views.group_detail, name="group_detail"),
+    
+    # Email management
+    path("email-preferences/", email_views.email_preferences_view, name="email_preferences"),
 ]
