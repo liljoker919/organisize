@@ -1,0 +1,37 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Unsubscribe Confirmation{% endblock %}
+
+{% block header_title %}Unsubscribe Confirmation{% endblock %}
+
+{% block content %}
+<h2>You've Been Unsubscribed</h2>
+
+<p>Hello <strong>{{ username }}</strong>,</p>
+
+<p>This email confirms that you have successfully unsubscribed from all email communications from Organisize.</p>
+
+<div class="alert alert-info">
+    <strong>What this means:</strong>
+    <ul>
+        <li>You will no longer receive vacation invitations</li>
+        <li>You will not get activity notifications</li>
+        <li>Marketing emails will stop</li>
+        <li>Account notifications will be limited</li>
+    </ul>
+</div>
+
+<p><strong>Important:</strong> You will still receive essential security emails like password reset requests for your account protection.</p>
+
+<h3>Changed Your Mind?</h3>
+<p>You can resubscribe or update your email preferences at any time by clicking the link below:</p>
+
+<div class="text-center">
+    <a href="{{ resubscribe_url }}" class="btn btn-primary">Manage Email Preferences</a>
+</div>
+
+<p>Or you can log in to your account and update your preferences from your account settings.</p>
+
+<p>Thank you for using Organisize!<br>
+<strong>The Organisize Team</strong></p>
+{% endblock %}

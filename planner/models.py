@@ -154,3 +154,190 @@ class Group(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class UserEmailPreference(models.Model):
+    """
+    User email preferences for different types of communications.
+    Supports unsubscribe functionality and email preference management.
+    """
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name="email_preferences"
+    )
+    
+    # Email subscription preferences
+    receive_vacation_invitations = models.BooleanField(default=True)
+    receive_activity_notifications = models.BooleanField(default=True)
+    receive_password_reset_emails = models.BooleanField(default=True)
+    receive_account_notifications = models.BooleanField(default=True)
+    receive_marketing_emails = models.BooleanField(default=False)
+    
+    # Unsubscribe tracking
+    unsubscribed_at = models.DateTimeField(null=True, blank=True)
+    unsubscribe_token = models.UUIDField(default=uuid.uuid4, unique=True)
+    
+    # Email status tracking
+    is_email_valid = models.BooleanField(default=True)
+    bounce_count = models.IntegerField(default=0)
+    complaint_received = models.BooleanField(default=False)
+    last_email_sent = models.DateTimeField(null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    @property
+    def is_unsubscribed(self):
+        """Check if user has unsubscribed from all emails."""
+        return self.unsubscribed_at is not None
+    
+    @property
+    def can_receive_emails(self):
+        """Check if user can receive emails (not unsubscribed, complained, or invalid)."""
+        return (
+            not self.is_unsubscribed 
+            and not self.complaint_received 
+            and self.is_email_valid
+        )
+    
+    def unsubscribe_all(self):
+        """Unsubscribe user from all email communications."""
+        from django.utils import timezone
+        self.unsubscribed_at = timezone.now()
+        self.receive_vacation_invitations = False
+        self.receive_activity_notifications = False
+        self.receive_account_notifications = False
+        self.receive_marketing_emails = False
+        # Keep password reset emails enabled for security
+        self.save()
+    
+    def mark_bounce(self, is_hard_bounce=False):
+        """Mark email as bounced and increment bounce count."""
+        self.bounce_count += 1
+        if is_hard_bounce or self.bounce_count >= 3:
+            self.is_email_valid = False
+        self.save()
+    
+    def mark_complaint(self):
+        """Mark email as complained - immediately stop all communications."""
+        self.complaint_received = True
+        self.is_email_valid = False
+        self.save()
+    
+    def __str__(self):
+        return f"Email preferences for {self.user.username}"
+    
+    class Meta:
+        ordering = ["-created_at"]
+
+
+class EmailLog(models.Model):
+    """
+    Comprehensive email sending log for monitoring and compliance.
+    """
+    EMAIL_TYPES = [
+        ('registration', 'Registration Confirmation'),
+        ('password_reset', 'Password Reset'),
+        ('vacation_invitation', 'Vacation Invitation'),
+        ('activity_notification', 'Activity Notification'),
+        ('unsubscribe_confirmation', 'Unsubscribe Confirmation'),
+        ('marketing', 'Marketing Email'),
+        ('system', 'System Notification'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('sent', 'Sent'),
+        ('delivered', 'Delivered'),
+        ('bounced', 'Bounced'),
+        ('complained', 'Complained'),
+        ('failed', 'Failed'),
+    ]
+    
+    # Email identification
+    email_type = models.CharField(max_length=50, choices=EMAIL_TYPES)
+    recipient_email = models.EmailField()
+    recipient_user = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name="email_logs"
+    )
+    
+    # Email content
+    subject = models.CharField(max_length=255)
+    message_id = models.CharField(max_length=255, null=True, blank=True)
+    
+    # Status tracking
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    sent_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    bounced_at = models.DateTimeField(null=True, blank=True)
+    complained_at = models.DateTimeField(null=True, blank=True)
+    
+    # AWS SES specific fields
+    ses_message_id = models.CharField(max_length=255, null=True, blank=True)
+    bounce_type = models.CharField(max_length=50, null=True, blank=True)  # 'Permanent', 'Transient'
+    bounce_subtype = models.CharField(max_length=50, null=True, blank=True)
+    complaint_feedback_type = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Additional tracking
+    error_message = models.TextField(null=True, blank=True)
+    retry_count = models.IntegerField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def mark_sent(self, ses_message_id=None):
+        """Mark email as sent."""
+        from django.utils import timezone
+        self.status = 'sent'
+        self.sent_at = timezone.now()
+        if ses_message_id:
+            self.ses_message_id = ses_message_id
+        self.save()
+    
+    def mark_delivered(self):
+        """Mark email as delivered."""
+        from django.utils import timezone
+        self.status = 'delivered'
+        self.delivered_at = timezone.now()
+        self.save()
+    
+    def mark_bounced(self, bounce_type=None, bounce_subtype=None):
+        """Mark email as bounced."""
+        from django.utils import timezone
+        self.status = 'bounced'
+        self.bounced_at = timezone.now()
+        self.bounce_type = bounce_type
+        self.bounce_subtype = bounce_subtype
+        self.save()
+    
+    def mark_complained(self, feedback_type=None):
+        """Mark email as complained."""
+        from django.utils import timezone
+        self.status = 'complained'
+        self.complained_at = timezone.now()
+        self.complaint_feedback_type = feedback_type
+        self.save()
+    
+    def mark_failed(self, error_message=None):
+        """Mark email as failed."""
+        self.status = 'failed'
+        self.error_message = error_message
+        self.save()
+    
+    def __str__(self):
+        return f"{self.email_type} to {self.recipient_email} - {self.status}"
+    
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["email_type"]),
+            models.Index(fields=["recipient_email"]),
+            models.Index(fields=["ses_message_id"]),
+            models.Index(fields=["created_at"]),
+        ]
