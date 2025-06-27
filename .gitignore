@@ -21,6 +21,7 @@ test_env/
 ENV/
 env/
 *.env
+*.env*
 
 # Django stuff
 db.sqlite3
