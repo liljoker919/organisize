@@ -315,3 +315,44 @@ def send_password_reset_email(user, token, uid, request=None):
         recipient_list=[user.email],
         email_type="password_reset"
     )
+
+
+def send_password_change_confirmation_email(user, request=None):
+    """
+    Send a confirmation email when a user changes their password.
+    
+    Args:
+        user: User instance whose password was changed
+        request: HttpRequest instance for context (optional)
+    
+    Returns:
+        dict: Result from send_html_email
+    """
+    from django.utils import timezone
+    
+    # Get current site info
+    site_url = "http://localhost:8000"  # fallback
+    if request:
+        try:
+            current_site = get_current_site(request)
+            site_url = f"{request.scheme}://{current_site.domain}"
+        except Exception:
+            pass
+    
+    context = {
+        'user': user,
+        'username': user.username,
+        'user_email': user.email,
+        'change_date': timezone.now(),
+        'site_url': site_url,
+        'domain': site_url.replace('https://', '').replace('http://', ''),
+        'protocol': 'https',
+    }
+    
+    return send_html_email(
+        subject="Organisize - Password Changed Successfully",
+        template_name="password_change_confirmation",
+        context=context,
+        recipient_list=[user.email],
+        email_type="password_change"
+    )
