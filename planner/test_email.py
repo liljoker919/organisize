@@ -48,7 +48,10 @@ class EmailUtilsTest(TestCase):
             recipient_list=['test@example.com']
         )
         
-        self.assertTrue(result)
+        # Updated: new function returns dict
+        self.assertTrue(result['success'])
+        self.assertEqual(result['sent_count'], 1)
+        self.assertEqual(len(result['failed']), 0)
         self.assertEqual(len(mail.outbox), 1)
         
         email = mail.outbox[0]
@@ -61,7 +64,8 @@ class EmailUtilsTest(TestCase):
         """Test registration confirmation email"""
         result = send_registration_confirmation_email(self.user)
         
-        self.assertTrue(result)
+        # Updated: new function returns dict
+        self.assertTrue(result['success'])
         self.assertEqual(len(mail.outbox), 1)
         
         email = mail.outbox[0]
@@ -78,7 +82,8 @@ class EmailUtilsTest(TestCase):
             temp_password='temp123'
         )
         
-        self.assertTrue(result)
+        # Updated: new function returns dict
+        self.assertTrue(result['success'])
         self.assertEqual(len(mail.outbox), 1)
         
         email = mail.outbox[0]
@@ -94,7 +99,8 @@ class EmailUtilsTest(TestCase):
             invitee_email='existing@example.com'
         )
         
-        self.assertTrue(result)
+        # Updated: new function returns dict
+        self.assertTrue(result['success'])
         self.assertEqual(len(mail.outbox), 1)
         
         email = mail.outbox[0]
@@ -113,7 +119,10 @@ class EmailUtilsTest(TestCase):
             recipient_list=['test@example.com']
         )
         
-        self.assertFalse(result)
+        # Updated: new function returns dict with success=False
+        self.assertFalse(result['success'])
+        self.assertEqual(result['sent_count'], 0)
+        self.assertEqual(len(result['failed']), 1)
         mock_logger.error.assert_called_once()
 
 
@@ -231,7 +240,8 @@ class EmailTemplateTest(TestCase):
             recipient_list=['test@example.com']
         )
         
-        self.assertTrue(result)
+        # Updated: new function returns dict
+        self.assertTrue(result['success'])
         email = mail.outbox[0]
         
         # Check that HTML alternative contains expected content
@@ -258,7 +268,8 @@ class EmailTemplateTest(TestCase):
             temp_password='temp123'
         )
         
-        self.assertTrue(result)
+        # Updated: new function returns dict
+        self.assertTrue(result['success'])
         email = mail.outbox[0]
         
         # Check that HTML alternative contains expected content
@@ -293,6 +304,5 @@ class EmailSettingsTest(TestCase):
             recipient_list=['test@example.com']
         )
         
-        # With console backend, we can't check the actual from_email easily,
-        # but we can verify the function completes successfully
-        self.assertTrue(result)
+        # Updated: new function returns dict
+        self.assertTrue(result['success'])
