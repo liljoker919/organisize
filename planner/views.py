@@ -730,6 +730,12 @@ def create_group(request):
     return render(request, "planner/create_group.html", {"form": form})
 
 
+@login_required
+def profile(request):
+    """User profile page with links to account settings"""
+    return render(request, 'planner/profile.html', {'user': request.user})
+
+
 def register(request):
     """User registration view"""
     # Redirect authenticated users to vacation list

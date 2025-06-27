@@ -37,6 +37,9 @@ urlpatterns = [
     path("groups/create/", views.create_group, name="create_group"),
     path("groups/<int:pk>/", views.group_detail, name="group_detail"),
     
+    # User profile
+    path("profile/", views.profile, name="profile"),
+    
     # Email management
     path("email-preferences/", email_views.email_preferences_view, name="email_preferences"),
 ]
