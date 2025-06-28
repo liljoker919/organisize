@@ -171,6 +171,21 @@ def vacation_detail(request, pk):
     transportation_forms = {transportation.id: TransportationForm(instance=transportation) for transportation in transportations}
 
     lodgings = vacation.lodgings.all()
+    
+    # Calculate cost totals
+    from decimal import Decimal
+    transportation_total = sum(t.actual_cost or Decimal('0') for t in transportations)
+    lodging_total = sum(l.actual_cost or Decimal('0') for l in lodgings)
+    activity_total = sum(a.actual_cost or Decimal('0') for a in activities)
+    grand_total = transportation_total + lodging_total + activity_total
+    
+    # Calculate budget comparison
+    budget_difference = None
+    is_over_budget = False
+    if vacation.estimated_cost and grand_total > 0:
+        budget_difference = abs(grand_total - vacation.estimated_cost)
+        is_over_budget = grand_total > vacation.estimated_cost
+    
     context = {
         "vacation": vacation,
         "group": vacation.group,  # Add group to context
@@ -183,6 +198,12 @@ def vacation_detail(request, pk):
         "transportations": transportations,
         "lodgings": lodgings,
         "shared_users": vacation.shared_with.all(),
+        "transportation_total": transportation_total,
+        "lodging_total": lodging_total,
+        "activity_total": activity_total,
+        "grand_total": grand_total,
+        "budget_difference": budget_difference,
+        "is_over_budget": is_over_budget,
     }
     return render(request, "planner/vacation_detail.html", context)
 
