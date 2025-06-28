@@ -39,4 +39,7 @@ urlpatterns = [
     
     # Email management
     path("email-preferences/", email_views.email_preferences_view, name="email_preferences"),
+    
+    # User profile
+    path("profile/", views.profile_view, name="profile"),
 ]

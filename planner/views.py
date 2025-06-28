@@ -751,3 +751,11 @@ def register(request):
         form = CustomUserCreationForm()
     
     return render(request, 'registration/register.html', {'form': form})
+
+
+@login_required
+def profile_view(request):
+    """
+    Display user profile page with links to manage account settings.
+    """
+    return render(request, 'planner/profile.html')
