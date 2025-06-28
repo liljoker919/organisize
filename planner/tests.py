@@ -538,7 +538,7 @@ class ViewTest(TestCase):
         )
         self.client.login(username='otheruser', password='otherpass123')
         response = self.client.get(reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
 
     def test_invite_users_by_email(self):
         """Test inviting users via email addresses"""
@@ -797,7 +797,7 @@ class VacationItineraryTestWithEvents(TestCase):
         url = reverse('vacation_itinerary', kwargs={'pk': self.vacation.pk})
         response = self.client.get(url)
         
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
 
     def test_itinerary_context_data(self):
         """Test that itinerary view provides correct context data"""
@@ -1307,5 +1307,91 @@ class RegistrationViewTest(TestCase):
         
         # User should NOT be created
         self.assertFalse(User.objects.filter(username='newuser').exists())
+
+
+class AccessDeniedTestCase(TestCase):
+    """Test cases for 403 Access Denied functionality"""
+
+    def setUp(self):
+        """Create test users and vacation for access control testing"""
+        self.owner = User.objects.create_user(
+            username='owner',
+            email='owner@example.com',
+            password='ownerpass123'
+        )
+        self.unauthorized_user = User.objects.create_user(
+            username='unauthorized',
+            email='unauthorized@example.com',
+            password='unauthorizedpass123'
+        )
+        self.shared_user = User.objects.create_user(
+            username='shared',
+            email='shared@example.com',
+            password='sharedpass123'
+        )
+        
+        # Create a vacation owned by owner
+        self.vacation = VacationPlan.objects.create(
+            title='Private Test Vacation',
+            destination='Secret Island',
+            start_date=date.today() + timedelta(days=10),
+            end_date=date.today() + timedelta(days=17),
+            owner=self.owner,
+            estimated_cost=1000.00
+        )
+        
+        # Share vacation with shared_user
+        self.vacation.shared_with.add(self.shared_user)
+
+    def test_vacation_detail_unauthorized_access_returns_403(self):
+        """Test that unauthorized users get 403 for vacation detail view"""
+        self.client.login(username='unauthorized', password='unauthorizedpass123')
+        response = self.client.get(reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
+        self.assertEqual(response.status_code, 403)
+
+    def test_vacation_detail_owner_access_returns_200(self):
+        """Test that vacation owner can access vacation detail view"""
+        self.client.login(username='owner', password='ownerpass123')
+        response = self.client.get(reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
+        self.assertEqual(response.status_code, 200)
+
+    def test_vacation_detail_shared_user_access_returns_200(self):
+        """Test that shared users can access vacation detail view"""
+        self.client.login(username='shared', password='sharedpass123')
+        response = self.client.get(reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
+        self.assertEqual(response.status_code, 200)
+
+    def test_vacation_itinerary_unauthorized_access_returns_403(self):
+        """Test that unauthorized users get 403 for vacation itinerary view"""
+        self.client.login(username='unauthorized', password='unauthorizedpass123')
+        response = self.client.get(reverse('vacation_itinerary', kwargs={'pk': self.vacation.pk}))
+        self.assertEqual(response.status_code, 403)
+
+    def test_vacation_itinerary_owner_access_returns_200(self):
+        """Test that vacation owner can access vacation itinerary view"""
+        self.client.login(username='owner', password='ownerpass123')
+        response = self.client.get(reverse('vacation_itinerary', kwargs={'pk': self.vacation.pk}))
+        self.assertEqual(response.status_code, 200)
+
+    def test_vacation_stays_unauthorized_access_returns_403(self):
+        """Test that unauthorized users get 403 for vacation stays view"""
+        self.client.login(username='unauthorized', password='unauthorizedpass123')
+        response = self.client.get(reverse('vacation_stays', kwargs={'pk': self.vacation.pk}))
+        self.assertEqual(response.status_code, 403)
+
+    def test_vacation_nonexistent_returns_404(self):
+        """Test that accessing non-existent vacation returns 404, not 403"""
+        self.client.login(username='unauthorized', password='unauthorizedpass123')
+        response = self.client.get(reverse('vacation_detail', kwargs={'pk': 999999}))
+        self.assertEqual(response.status_code, 404)
+
+    def test_403_template_contains_access_denied_message(self):
+        """Test that 403 page contains appropriate access denied message"""
+        self.client.login(username='unauthorized', password='unauthorizedpass123')
+        response = self.client.get(reverse('vacation_detail', kwargs={'pk': self.vacation.pk}))
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, 'Access Denied', status_code=403)
+        self.assertContains(response, 'permission', status_code=403)
+        self.assertContains(response, 'My Vacations', status_code=403)
 
 
