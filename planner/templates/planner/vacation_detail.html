@@ -129,6 +129,18 @@
         {% include "planner/modals/edit_transportation_modal.html" %}
         {% endfor %}
     </ul>
+    
+    <!-- Transportation Total -->
+    {% if transportation_total and transportation_total != 0 %}
+    <div class="card bg-light mb-3">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <span><strong>Total Transportation Cost:</strong></span>
+                <span class="fw-bold text-primary">${{ transportation_total|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
 
     <!-- Stays Section -->
@@ -161,6 +173,9 @@
                         <div>
                             <small class="fw-bold">{{ lodging.name }}</small><br>
                             <small class="text-muted">{{ lodging.check_in }} - {{ lodging.check_out }}</small>
+                            {% if lodging.actual_cost %}
+                            <br><small class="text-success"><strong>Cost:</strong> ${{ lodging.actual_cost }}</small>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -183,6 +198,18 @@
                 Add Your First Stay
             </a>
             {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Lodging Total -->
+    {% if lodging_total and lodging_total != 0 %}
+    <div class="card bg-light mb-3">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <span><strong>Total Lodging Cost:</strong></span>
+                <span class="fw-bold text-success">${{ lodging_total|floatformat:2 }}</span>
+            </div>
         </div>
     </div>
     {% endif %}
@@ -249,6 +276,68 @@
         {% include "planner/modals/edit_activity_modal.html" %}
         {% endfor %}
     </ul>
+    
+    <!-- Activity Total -->
+    {% if activity_total and activity_total != 0 %}
+    <div class="card bg-light mb-4">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <span><strong>Total Activities Cost:</strong></span>
+                <span class="fw-bold text-warning">${{ activity_total|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if grand_total and grand_total != 0 %}
+    <!-- Trip Summary Section -->
+    <div class="card border-primary mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-calculator me-2"></i>Trip Summary
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-2 d-flex justify-content-between">
+                        <span><i class="bi bi-airplane text-primary me-2"></i>Total Transportation:</span>
+                        <span class="fw-bold">${{ transportation_total|floatformat:2 }}</span>
+                    </div>
+                    <div class="mb-2 d-flex justify-content-between">
+                        <span><i class="bi bi-house-door text-success me-2"></i>Total Lodging:</span>
+                        <span class="fw-bold">${{ lodging_total|floatformat:2 }}</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span><i class="bi bi-star text-warning me-2"></i>Total Activities:</span>
+                        <span class="fw-bold">${{ activity_total|floatformat:2 }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-center">
+                        <div class="border border-primary rounded p-3 bg-light">
+                            <h6 class="text-muted mb-1">Grand Total</h6>
+                            <h3 class="text-primary mb-0">${{ grand_total|floatformat:2 }}</h3>
+                        </div>
+                        {% if vacation.estimated_cost %}
+                        <small class="text-muted mt-2 d-block">
+                            Estimated: ${{ vacation.estimated_cost|floatformat:2 }}
+                            {% if budget_difference %}
+                                <br>
+                                {% if is_over_budget %}
+                                    <span class="text-danger">(${{ budget_difference|floatformat:2 }} over budget)</span>
+                                {% else %}
+                                    <span class="text-success">(${{ budget_difference|floatformat:2 }} under budget)</span>
+                                {% endif %}
+                            {% endif %}
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <h4>Shared With</h4>
     <ul class="list-unstyled mb-3">
