@@ -29,10 +29,25 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.utils.crypto import get_random_string
 from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 from django.views.decorators.http import require_POST
 from datetime import datetime, date, timedelta
 from collections import defaultdict
+
+
+def get_vacation_or_403(pk, user):
+    """
+    Get a vacation that the user has access to, or raise PermissionDenied.
+    This replaces the pattern of using get_object_or_404 with complex filters.
+    """
+    try:
+        vacation = VacationPlan.objects.get(pk=pk)
+        if vacation.owner == user or user in vacation.shared_with.all():
+            return vacation
+        else:
+            raise PermissionDenied("You do not have permission to access this vacation.")
+    except VacationPlan.DoesNotExist:
+        raise Http404("Vacation not found.")
 
 
 def home(request):
@@ -152,9 +167,7 @@ def delete_vacation(request, pk):
 
 @login_required
 def vacation_detail(request, pk):
-    vacation = get_object_or_404(
-        VacationPlan.objects.filter(Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))).distinct()
-    )
+    vacation = get_vacation_or_403(pk, request.user)
 
     # Initialize forms for static modals
     activity_form = ActivityForm()
@@ -211,7 +224,7 @@ def vacation_detail(request, pk):
 @login_required
 def vacation_stays(request, pk):
     """Separate stays/lodging page with timeline view"""
-    vacation = get_object_or_404(VacationPlan, pk=pk)
+    vacation = get_vacation_or_403(pk, request.user)
     lodgings = vacation.lodgings.all().order_by("check_in")
 
     # Initialize forms for modals
@@ -230,9 +243,7 @@ def vacation_stays(request, pk):
 @login_required
 def vacation_itinerary(request, pk):
     """Generate a day-by-day itinerary for a vacation"""
-    vacation = get_object_or_404(
-        VacationPlan.objects.filter(Q(pk=pk) & (Q(owner=request.user) | Q(shared_with=request.user))).distinct()
-    )
+    vacation = get_vacation_or_403(pk, request.user)
 
     # Get all vacation events
     transportations = vacation.transportations.all()
@@ -728,7 +739,7 @@ def group_detail(request, pk):
     group = get_object_or_404(Group, pk=pk)
     # Check if user is a member or creator
     if not (request.user in group.members.all() or request.user == group.creator):
-        raise Http404("Group not found")
+        raise PermissionDenied("You do not have permission to access this group.")
 
     return render(request, "planner/group_detail.html", {"group": group})
 
