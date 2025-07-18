@@ -1332,12 +1332,12 @@ class AccessDeniedTestCase(TestCase):
         
         # Create a vacation owned by owner
         self.vacation = VacationPlan.objects.create(
-            title='Private Test Vacation',
             destination='Secret Island',
             start_date=date.today() + timedelta(days=10),
             end_date=date.today() + timedelta(days=17),
             owner=self.owner,
-            estimated_cost=1000.00
+            estimated_cost=1000.00,
+            trip_type='planned'
         )
         
         # Share vacation with shared_user

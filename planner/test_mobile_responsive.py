@@ -25,7 +25,7 @@ class MobileResponsiveDashboardTest(TestCase):
         
         # Check for Bootstrap responsive components
         self.assertIn('d-flex', content)
-        self.assertIn('flex-wrap', content)
+        self.assertIn('flex-column', content)
 
     def test_dashboard_home_page_responsive_classes(self):
         """Test that vacation list (main dashboard) has proper responsive classes"""
@@ -54,9 +54,9 @@ class MobileResponsiveDashboardTest(TestCase):
         content = response.content.decode()
         
         # Check for Bootstrap icons in landing page
-        self.assertIn('bi bi-person-plus', content)
-        self.assertIn('bi bi-box-arrow-in-right', content)
-        self.assertIn('bi bi-map', content)
+        self.assertIn('bi bi-suitcase', content)
+        self.assertIn('bi bi-plus-circle', content)
+        self.assertIn('bi bi-question-circle', content)
 
     def test_vacation_detail_page_responsive_classes(self):
         """Test that vacation detail page has responsive improvements"""
