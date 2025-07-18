@@ -1,0 +1,344 @@
+/* 
+ * Organisize Brand Theme CSS
+ * Implements the official Organisize branding guidelines
+ * Applied after Bootstrap to override default styles
+ */
+
+/* CSS Custom Properties for Brand Colors */
+:root {
+    --organisize-primary: #3DA1B8;    /* Teal/Blue */
+    --organisize-secondary: #ABBA38;  /* Lime Green */
+    --organisize-warning: #EB5757;    /* Red */
+    --organisize-background: #F7F9FD; /* Light Gray/Off-white */
+    --organisize-text: #333333;       /* Dark Gray */
+    
+    /* Derived colors for different states */
+    --organisize-primary-hover: #329fb3;
+    --organisize-primary-active: #2a8ea5;
+    --organisize-secondary-hover: #9ba533;
+    --organisize-secondary-active: #8b912e;
+    --organisize-warning-hover: #e44545;
+    --organisize-warning-active: #dc3333;
+}
+
+/* Typography - Custom Font Faces */
+/* Note: Font files should be placed in the fonts directory when available */
+/* Using fallback fonts with similar characteristics for now */
+
+/* Fallback for Public Sans Bold */
+.public-sans-bold {
+    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* Fallback for Helvetica Neue Regular */
+.helvetica-neue-regular {
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+/* Base Typography */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: var(--organisize-text);
+    background-color: var(--organisize-background);
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    color: var(--organisize-text);
+}
+
+/* Navigation Bar Branding */
+.navbar-brand {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: white !important;
+}
+
+.navbar-brand img {
+    height: 32px;
+    width: auto;
+    margin-right: 0.5rem;
+}
+
+/* Custom Navbar Styling */
+.navbar-dark {
+    background-color: var(--organisize-primary) !important;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link:focus {
+    color: white !important;
+}
+
+.navbar-dark .navbar-nav .nav-link.active {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 0.375rem;
+}
+
+/* Button Overrides */
+.btn-primary {
+    background-color: var(--organisize-primary);
+    border-color: var(--organisize-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--organisize-primary-hover);
+    border-color: var(--organisize-primary-hover);
+    color: white;
+}
+
+.btn-primary:focus,
+.btn-primary.focus {
+    background-color: var(--organisize-primary-hover);
+    border-color: var(--organisize-primary-hover);
+    box-shadow: 0 0 0 0.2rem rgba(61, 161, 184, 0.5);
+}
+
+.btn-primary:active,
+.btn-primary.active {
+    background-color: var(--organisize-primary-active);
+    border-color: var(--organisize-primary-active);
+}
+
+.btn-secondary {
+    background-color: var(--organisize-secondary);
+    border-color: var(--organisize-secondary);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: var(--organisize-secondary-hover);
+    border-color: var(--organisize-secondary-hover);
+    color: white;
+}
+
+.btn-secondary:focus,
+.btn-secondary.focus {
+    background-color: var(--organisize-secondary-hover);
+    border-color: var(--organisize-secondary-hover);
+    box-shadow: 0 0 0 0.2rem rgba(171, 186, 56, 0.5);
+}
+
+.btn-secondary:active,
+.btn-secondary.active {
+    background-color: var(--organisize-secondary-active);
+    border-color: var(--organisize-secondary-active);
+}
+
+.btn-warning {
+    background-color: var(--organisize-warning);
+    border-color: var(--organisize-warning);
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: var(--organisize-warning-hover);
+    border-color: var(--organisize-warning-hover);
+    color: white;
+}
+
+.btn-warning:focus,
+.btn-warning.focus {
+    background-color: var(--organisize-warning-hover);
+    border-color: var(--organisize-warning-hover);
+    box-shadow: 0 0 0 0.2rem rgba(235, 87, 87, 0.5);
+}
+
+.btn-warning:active,
+.btn-warning.active {
+    background-color: var(--organisize-warning-active);
+    border-color: var(--organisize-warning-active);
+}
+
+/* Outline Button Variants */
+.btn-outline-primary {
+    color: var(--organisize-primary);
+    border-color: var(--organisize-primary);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--organisize-primary);
+    border-color: var(--organisize-primary);
+    color: white;
+}
+
+.btn-outline-secondary {
+    color: var(--organisize-secondary);
+    border-color: var(--organisize-secondary);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--organisize-secondary);
+    border-color: var(--organisize-secondary);
+    color: white;
+}
+
+/* Link Colors */
+a {
+    color: var(--organisize-primary);
+}
+
+a:hover {
+    color: var(--organisize-primary-hover);
+}
+
+/* Background Colors */
+.bg-primary {
+    background-color: var(--organisize-primary) !important;
+}
+
+.bg-secondary {
+    background-color: var(--organisize-secondary) !important;
+}
+
+.bg-warning {
+    background-color: var(--organisize-warning) !important;
+}
+
+/* Text Colors */
+.text-primary {
+    color: var(--organisize-primary) !important;
+}
+
+.text-secondary {
+    color: var(--organisize-secondary) !important;
+}
+
+.text-warning {
+    color: var(--organisize-warning) !important;
+}
+
+/* Border Colors */
+.border-primary {
+    border-color: var(--organisize-primary) !important;
+}
+
+.border-secondary {
+    border-color: var(--organisize-secondary) !important;
+}
+
+.border-warning {
+    border-color: var(--organisize-warning) !important;
+}
+
+/* Alert Components */
+.alert-primary {
+    color: #1a4c52;
+    background-color: #d4f3f7;
+    border-color: var(--organisize-primary);
+}
+
+.alert-secondary {
+    color: #4a4d14;
+    background-color: #f0f2d0;
+    border-color: var(--organisize-secondary);
+}
+
+.alert-warning {
+    color: #5d1f1f;
+    background-color: #fcd6d6;
+    border-color: var(--organisize-warning);
+}
+
+/* Card Enhancements */
+.card {
+    border: 1px solid rgba(61, 161, 184, 0.125);
+    box-shadow: 0 0.125rem 0.25rem rgba(61, 161, 184, 0.075);
+}
+
+.card-header {
+    background-color: rgba(61, 161, 184, 0.03);
+    border-bottom: 1px solid rgba(61, 161, 184, 0.125);
+}
+
+/* Form Controls */
+.form-control:focus {
+    border-color: var(--organisize-primary);
+    box-shadow: 0 0 0 0.2rem rgba(61, 161, 184, 0.25);
+}
+
+.form-select:focus {
+    border-color: var(--organisize-primary);
+    box-shadow: 0 0 0 0.2rem rgba(61, 161, 184, 0.25);
+}
+
+/* Dropdown Enhancements */
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: rgba(61, 161, 184, 0.1);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--organisize-primary);
+}
+
+/* Table Enhancements */
+.table-striped > tbody > tr:nth-of-type(odd) > td,
+.table-striped > tbody > tr:nth-of-type(odd) > th {
+    background-color: rgba(61, 161, 184, 0.05);
+}
+
+/* Custom Utility Classes */
+.text-organisize {
+    color: var(--organisize-text) !important;
+}
+
+.bg-organisize {
+    background-color: var(--organisize-background) !important;
+}
+
+/* Landing Page Hero Section Enhancement */
+.hero-section {
+    background: linear-gradient(135deg, var(--organisize-primary) 0%, var(--organisize-primary-hover) 100%);
+}
+
+/* Footer Styling */
+footer {
+    background-color: var(--organisize-background) !important;
+    color: var(--organisize-text);
+    border-top: 1px solid rgba(61, 161, 184, 0.125);
+}
+
+/* Responsive Logo Adjustments */
+@media (max-width: 767.98px) {
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    .navbar-brand img {
+        height: 28px;
+    }
+}
+
+/* Ensure proper contrast for accessibility */
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-warning:disabled {
+    opacity: 0.65;
+}
+
+/* Badge styling */
+.badge.bg-primary {
+    background-color: var(--organisize-primary) !important;
+}
+
+.badge.bg-secondary {
+    background-color: var(--organisize-secondary) !important;
+}
+
+.badge.bg-warning {
+    background-color: var(--organisize-warning) !important;
+}

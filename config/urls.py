@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from django.conf import settings
+from django.conf.urls.static import static
 from planner import views as planner_views
 from planner import auth_views as custom_auth_views
 from planner import email_views
@@ -27,3 +29,7 @@ urlpatterns = [
     # Email management
     path("unsubscribe/<uuid:token>/", email_views.unsubscribe_view, name="unsubscribe"),
 ]
+
+# Serve static files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
