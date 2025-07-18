@@ -1,0 +1,13 @@
+<svg width="160" height="32" viewBox="0 0 160 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo mark (circular icon) -->
+  <circle cx="16" cy="16" r="14" fill="white" stroke="none"/>
+  <circle cx="16" cy="16" r="12" fill="none" stroke="#3DA1B8" stroke-width="2"/>
+  
+  <!-- Clock/organizing symbol -->
+  <circle cx="16" cy="16" r="3" fill="#3DA1B8"/>
+  <line x1="16" y1="16" x2="16" y2="8" stroke="#3DA1B8" stroke-width="2" stroke-linecap="round"/>
+  <line x1="16" y1="16" x2="20" y2="16" stroke="#3DA1B8" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Organisize text -->
+  <text x="38" y="22" font-family="Public Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="white">Organisize</text>
+</svg>

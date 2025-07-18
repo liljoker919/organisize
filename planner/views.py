@@ -51,7 +51,10 @@ def get_vacation_or_403(pk, user):
 
 
 def home(request):
-    return render(request, "planner/landing.html")
+    if request.user.is_authenticated:
+        return render(request, "planner/home.html")
+    else:
+        return render(request, "planner/landing.html")
 
 
 @method_decorator(login_required, name="dispatch")
