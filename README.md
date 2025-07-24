@@ -59,124 +59,9 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-### Option 2: Docker Development Setup (Recommended)
+### Option 2: Native MailHog Installation (Recommended for Email Testing)
 
-For the best development experience with email testing, use Docker with MailHog:
-
-#### Prerequisites
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-
-#### Quick Start
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd organisize
-```
-
-2. Start the development environment:
-```bash
-docker-compose up
-```
-
-This will start:
-- **Django app** at http://localhost:8000
-- **MailHog** (email testing) at http://localhost:8025
-
-#### Email Testing with MailHog
-
-MailHog captures all outgoing emails in development so you can:
-- View sent emails at http://localhost:8025
-- Test email functionality without sending real emails
-- See email content and formatting
-
-#### Development Workflow
-
-```bash
-# Start services
-docker-compose up
-
-# Run in background
-docker-compose up -d
-
-# View logs
-docker-compose logs web
-docker-compose logs mailhog
-
-# Stop services
-docker-compose down
-
-# Rebuild after code changes
-docker-compose up --build
-```
-
-#### Testing Email Delivery
-
-After starting the Docker services, test email delivery:
-
-```bash
-# Method 1: Use the custom management command
-docker-compose exec web python manage.py test_mailhog_email
-
-# Method 2: Use Django's built-in sendtestemail command
-docker-compose exec web python manage.py sendtestemail test@example.com
-
-# Method 3: Test with specific email address
-docker-compose exec web python manage.py test_mailhog_email --email your@email.com
-
-# Method 4: Test only HTML emails
-docker-compose exec web python manage.py test_mailhog_email --html-only
-```
-
-Then visit http://localhost:8025 to see the test emails in MailHog.
-
-#### Troubleshooting Docker Setup
-
-**DNS Resolution Issues**
-If you encounter "Temporary failure in name resolution" errors when testing emails:
-
-1. **Check container connectivity**:
-```bash
-docker-compose ps  # Ensure both containers are running
-```
-
-2. **Use IP address workaround**:
-```bash
-# Find MailHog container IP
-docker inspect mailhog | grep IPAddress
-
-# Update .env.dev with the IP address
-EMAIL_HOST=172.18.0.2  # Replace with actual IP
-```
-
-3. **Alternative: Use host networking** (Linux only):
-```bash
-# Modify docker-compose.yml to add:
-network_mode: "host"
-```
-
-4. **Restart services after configuration changes**:
-```bash
-docker-compose down && docker-compose up
-```
-
-**Common Issues**
-- **Port conflicts**: Ensure ports 8000, 8025, and 1025 are not in use
-- **Permission errors**: Make sure Docker has permission to bind to ports
-- **Build failures**: Check that `requirements.txt` dependencies can be installed
-
-#### Environment Configuration
-
-The Docker setup uses `.env.dev` for development settings:
-- `DEBUG=True`
-- Email routing to MailHog
-- Development-friendly configurations
-
-For production, create a `.env` file with your production settings.
-
-### Option 3: Native MailHog Installation (CI/Alternative)
-
-If you prefer not to use Docker or are setting up CI/CD, you can install MailHog directly:
+For the best development experience with email testing, install MailHog directly:
 
 #### Installing MailHog
 
@@ -197,24 +82,105 @@ go install github.com/mailhog/MailHog@latest
 MailHog
 ```
 
-#### Configuration for Native MailHog
+#### Development Setup with MailHog
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd organisize
+```
+
+2. Create and activate a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Copy the development environment template:
+```bash
+cp .env.dev .env
+```
+
+5. Start MailHog in background:
+```bash
+mailhog > /dev/null 2>&1 &
+```
+
+6. Apply database migrations:
+```bash
+python manage.py migrate
+```
+
+7. Create a superuser (admin):
+```bash
+python manage.py createsuperuser
+```
+
+8. Run the development server:
+```bash
+python manage.py runserver
+```
+
+This will start:
+- **Django app** at http://localhost:8000
+- **MailHog** (email testing) at http://localhost:8025
+
+#### Email Testing with MailHog
+
+MailHog captures all outgoing emails in development so you can:
+- View sent emails at http://localhost:8025
+- Test email functionality without sending real emails
+- See email content and formatting
+
+#### Testing Email Delivery
+
+After starting MailHog and the Django server, test email delivery:
+
+```bash
+# Method 1: Use the custom management command
+python manage.py test_mailhog_email
+
+# Method 2: Use Django's built-in sendtestemail command
+python manage.py sendtestemail test@example.com
+
+# Method 3: Test with specific email address
+python manage.py test_mailhog_email --email your@email.com
+
+# Method 4: Test only HTML emails
+python manage.py test_mailhog_email --html-only
+```
+
+Then visit http://localhost:8025 to see the test emails in MailHog.
+
+### Option 3: Alternative Setup for CI/CD
+
+If you are setting up CI/CD or prefer an alternative configuration approach, you can use the CI environment setup:
+
+#### Configuration for CI/Alternative Setup
 
 1. Copy the CI environment template:
 ```bash
 cp .env.ci .env
 ```
 
-2. Start MailHog in background:
+2. Install MailHog (see Option 2 for installation instructions)
+
+3. Start MailHog in background:
 ```bash
 mailhog > /dev/null 2>&1 &
 ```
 
-3. Test email functionality:
+4. Test email functionality:
 ```bash
 python manage.py test_mailhog_email
 ```
 
-4. View emails at http://localhost:8025
+5. View emails at http://localhost:8025
 
 #### CI/CD Integration
 
@@ -222,13 +188,13 @@ The project includes automated CI testing with MailHog in GitHub Actions. The wo
 
 1. Installs MailHog binary
 2. Starts MailHog in background
-3. Uses `.env.ci` configuration (localhost instead of Docker service name)
+3. Uses `.env.ci` configuration (localhost configuration)
 4. Tests email functionality before running the full test suite
 5. Verifies emails are captured in MailHog via API
 
 This approach is ideal for:
 - Continuous Integration environments
-- Environments where Docker is not available
+- Consistent development setup across team members
 - Minimal setup requirements
 
 ## Technology Stack
@@ -237,7 +203,6 @@ This approach is ideal for:
 - Bootstrap 5.3.0
 - SQLite (default database)
 - Python 3.x
-- Docker & Docker Compose (development)
 - MailHog (email testing)
 
 ## Project Structure
