@@ -21,40 +21,40 @@
     --organisize-warning-active: #dc3333;
 }
 
-/* Typography - Custom Font Faces */
-/* Note: Font files should be placed in the fonts directory when available */
-/* Using fallback fonts with similar characteristics for now */
+/* Typography - Organisize Brand Fonts */
+/* Import Google Fonts for Public Sans as fallback for brand typography */
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700&display=swap');
 
-/* Fallback for Public Sans Bold */
-.public-sans-bold {
-    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-weight: 700;
-    font-style: normal;
-}
+/* Brand Font Definitions */
+/* Primary: Public Sans Bold for headings */
+/* Secondary: Helvetica Neue Regular for body text with system font fallbacks */
 
-/* Fallback for Helvetica Neue Regular */
-.helvetica-neue-regular {
-    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-weight: 400;
-    font-style: normal;
-}
-
-/* Base Typography */
+/* Base Typography - Body Text */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Arial', sans-serif;
+    font-weight: 400;
     color: var(--organisize-text);
     background-color: var(--organisize-background);
+    line-height: 1.6;
 }
 
+/* Headings - Public Sans Bold */
 h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Arial', sans-serif;
     font-weight: 700;
     color: var(--organisize-text);
+    line-height: 1.2;
+}
+
+/* Additional paragraph and text styling */
+p, .text-body {
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Arial', sans-serif;
+    font-weight: 400;
 }
 
 /* Navigation Bar Branding */
 .navbar-brand {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Arial', sans-serif;
     font-weight: 700;
     font-size: 1.5rem;
     color: white !important;
@@ -341,4 +341,62 @@ footer {
 
 .badge.bg-warning {
     background-color: var(--organisize-warning) !important;
+}
+
+/* Additional Organisize-specific enhancements */
+
+/* Enhance the user avatar circle in the navbar */
+.navbar .bg-primary {
+    background-color: var(--organisize-primary) !important;
+}
+
+/* Ensure consistent button sizing and spacing */
+.btn {
+    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Arial', sans-serif;
+    font-weight: 600;
+}
+
+/* Hero section text improvements */
+.hero-section h1 {
+    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Arial', sans-serif;
+    font-weight: 700;
+}
+
+/* Improve list styling */
+ul, ol {
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Arial', sans-serif;
+}
+
+/* Additional responsive improvements */
+@media (max-width: 575.98px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .navbar-brand img {
+        height: 24px;
+    }
+}
+
+/* Improve form styling consistency */
+.form-label {
+    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Arial', sans-serif;
+    font-weight: 600;
+    color: var(--organisize-text);
+}
+
+/* Enhance table styling */
+.table th {
+    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Arial', sans-serif;
+    font-weight: 700;
+    color: var(--organisize-text);
+}
+
+/* Improve navigation active state */
+.navbar-nav .nav-link.active {
+    font-weight: 600;
 }
