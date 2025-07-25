@@ -85,3 +85,58 @@ class ProductionConfigurationTest(TestCase):
         """Test that ALLOWED_HOSTS is never empty."""
         self.assertTrue(settings.ALLOWED_HOSTS, "ALLOWED_HOSTS should not be empty")
         self.assertIsInstance(settings.ALLOWED_HOSTS, list, "ALLOWED_HOSTS should be a list")
+
+    def test_static_files_configuration(self):
+        """Test that static files are properly configured for production."""
+        # Test STATIC_URL is set
+        self.assertTrue(settings.STATIC_URL, "STATIC_URL should be set")
+        self.assertEqual(settings.STATIC_URL, "/static/", "STATIC_URL should be '/static/'")
+        
+        # Test STATIC_ROOT is set for production collection
+        self.assertTrue(settings.STATIC_ROOT, "STATIC_ROOT should be set for collectstatic")
+        self.assertTrue(settings.STATIC_ROOT.endswith('staticfiles'), 
+                       "STATIC_ROOT should point to staticfiles directory")
+        
+        # Test STATICFILES_DIRS includes planner static directory
+        self.assertTrue(settings.STATICFILES_DIRS, "STATICFILES_DIRS should be configured")
+        planner_static_found = any('planner' in static_dir for static_dir in settings.STATICFILES_DIRS)
+        self.assertTrue(planner_static_found, "STATICFILES_DIRS should include planner static directory")
+
+    def test_whitenoise_middleware_configuration(self):
+        """Test that WhiteNoise middleware is properly configured for production static file serving."""
+        middleware = settings.MIDDLEWARE
+        
+        # Test that WhiteNoise middleware is present
+        whitenoise_middleware = 'whitenoise.middleware.WhiteNoiseMiddleware'
+        self.assertIn(whitenoise_middleware, middleware, 
+                     "WhiteNoise middleware should be configured for production static file serving")
+        
+        # Test that WhiteNoise is positioned correctly (after SecurityMiddleware)
+        security_middleware = 'django.middleware.security.SecurityMiddleware'
+        self.assertIn(security_middleware, middleware, "SecurityMiddleware should be present")
+        
+        security_index = middleware.index(security_middleware)
+        whitenoise_index = middleware.index(whitenoise_middleware)
+        self.assertEqual(whitenoise_index, security_index + 1, 
+                        "WhiteNoise middleware should be immediately after SecurityMiddleware")
+
+    def test_static_files_serving_ready(self):
+        """Test that static file serving is ready for production deployment."""
+        import os
+        from django.conf import settings
+        
+        # Test that static files directory structure exists
+        if hasattr(settings, 'STATICFILES_DIRS') and settings.STATICFILES_DIRS:
+            for static_dir in settings.STATICFILES_DIRS:
+                self.assertTrue(os.path.exists(static_dir), 
+                              f"Static files directory should exist: {static_dir}")
+        
+        # Test that the organisize logo files that are referenced in templates exist
+        planner_static = os.path.join(settings.BASE_DIR, 'planner', 'static', 'planner', 'img')
+        if os.path.exists(planner_static):
+            # Check for logo files mentioned in the issue
+            logo_files = ['organisize2.png', 'organisize4.png']  # Files used in base.html
+            for logo_file in logo_files:
+                logo_path = os.path.join(planner_static, logo_file)
+                self.assertTrue(os.path.exists(logo_path), 
+                              f"Logo file should exist for production: {logo_file}")
