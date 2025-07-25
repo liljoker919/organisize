@@ -8,20 +8,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Organisize - Plan and organize your vacations effortlessly.">
     <meta name="keywords" content="vacation, planning, organization, travel">
-    
+
     <!-- Favicon -->
     {% load static %}
-    <link rel="icon" type="image/svg+xml" href="{% static 'planner/img/favicon.svg' %}">
-    <link rel="alternate icon" href="{% static 'planner/img/favicon.svg' %}">
-    <link rel="shortcut icon" href="{% static 'planner/img/favicon.svg' %}">>
-    
+    <link rel="icon" type="image/svg+xml" href="{% static 'planner/img/organisize4.png' %}">
+    <link rel="alternate icon" href="{% static 'planner/img/organisize4.png' %}">
+    <link rel="shortcut icon" href="{% static 'planner/img/organisize4.png' %}">>
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    
+
     <!-- Custom Branding CSS -->
     <link href="{% static 'planner/css/organisize_theme.css' %}" rel="stylesheet">
-    
+
     <!-- Custom Responsive CSS -->
     <link href="{% static 'planner/css/responsive.css' %}" rel="stylesheet">
 </head>
@@ -32,7 +32,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <img src="{% static 'planner/img/organisize-logo.svg' %}" alt="Organisize Logo" height="32">
+                <img src="{% static 'planner/img/organisize2.png' %}" alt="Organisize Logo" height="32">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -69,13 +69,15 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item py-1 d-flex align-items-center" href="{% url 'password_change' %}">
+                                <a class="dropdown-item py-1 d-flex align-items-center"
+                                    href="{% url 'password_change' %}">
                                     <i class="bi bi-key text-warning me-2"></i>Change Password
                                 </a>
                             </li>
                             <li>
 
-                                <a class="dropdown-item py-1 d-flex align-items-center" href="{% url 'email_preferences' %}">
+                                <a class="dropdown-item py-1 d-flex align-items-center"
+                                    href="{% url 'email_preferences' %}">
 
                                     <i class="bi bi-gear text-secondary me-2"></i>Settings
                                 </a>
