@@ -13,7 +13,7 @@
     {% load static %}
     <link rel="icon" type="image/svg+xml" href="{% static 'planner/img/organisize4.png' %}">
     <link rel="alternate icon" href="{% static 'planner/img/organisize4.png' %}">
-    <link rel="shortcut icon" href="{% static 'planner/img/organisize4.png' %}">>
+    <link rel="shortcut icon" href="{% static 'planner/img/organisize4.png' %}">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -131,7 +131,7 @@
     {% endif %}
 
     <!-- Main Content -->
-    <div class="{% if request.resolver_match.url_name != 'home' %}container mt-4{% endif %}">
+    <div class="container{% if request.resolver_match.url_name != 'home' %} mt-4{% endif %}">
         {% block content %}
         <!-- Page content will go here -->
         {% endblock %}
@@ -139,7 +139,7 @@
 
     <!-- Footer -->
     <footer class="bg-light text-center mt-5 py-3">
-        <p class="mb-0">&copy; <strong>{% now "Y" %}</strong> <strong>Organisize</strong>.
+        <p class="mb-0">&copy; <span>{% now "Y" %}</span> <span>Organisize</span>.
             All rights reserved.</p>
     </footer>
 
