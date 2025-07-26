@@ -303,6 +303,7 @@ a:hover {
 /* Landing Page Hero Section Enhancement */
 .hero-section {
     background: linear-gradient(135deg, var(--organisize-primary) 0%, var(--organisize-primary-hover) 100%);
+    margin-top: 2rem; /* Add separation from navbar to prevent background bleeding */
 }
 
 /* Footer Styling */
